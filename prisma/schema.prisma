@@ -48,12 +48,12 @@ model Recipient {
   userId       String?   @map("user_id")
   name         String
   street       String
-  number       String
+  number       Int
   neighborhood String
   city         String
   state        String
-  zipCode      String    @map("zip_code")
-  phone        String
+  zipCode      Int       @map("zip_code")
+  phone        BigInt
   email        String
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime? @updatedAt @map("updated_at")
@@ -68,7 +68,7 @@ model Order {
   id            String      @id @default(uuid())
   recipientId   String      @map("recipient_id")
   deliverymanId String?     @map("deliveryman_id")
-  status        OrderStatus
+  status        OrderStatus @default(PENDING)
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime?   @updatedAt @map("updated_at")
 
