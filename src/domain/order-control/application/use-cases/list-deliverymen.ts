@@ -2,6 +2,7 @@ import { Either, left, right } from '@/core/either'
 import { UsersRepository } from '@/domain/order-control/application/repositories/users-repository'
 import { User } from '@/domain/order-control/enterprise/entities/user'
 import { OnlyActiveAdminsCanListDeliverymenError } from './errors/only-active-admins-can-list-deliverymen-error'
+import { Injectable } from '@nestjs/common'
 
 interface ListDeliverymenUseCaseRequest {
   page: number
@@ -13,6 +14,7 @@ type ListDeliverymenUseCaseResponse = Either<
   User[]
 >
 
+@Injectable()
 export class ListDeliverymenUseCase {
   constructor(private usersRepository: UsersRepository) {}
 

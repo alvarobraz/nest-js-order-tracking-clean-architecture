@@ -1,5 +1,5 @@
 import { AppModule } from '@/infra/app.module'
-import { PrismaService } from '@/infra/prisma/prisma.service'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import { INestApplication } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { Test } from '@nestjs/testing'
@@ -30,7 +30,7 @@ describe('Create Recipient (E2E)', () => {
         name: 'John Doe',
         cpf: '12365478932',
         password: await hash('123456', 8),
-        role: 'ADMIN',
+        role: 'admin',
         email: 'johndoe@example.com',
         phone: '41997458547',
       },

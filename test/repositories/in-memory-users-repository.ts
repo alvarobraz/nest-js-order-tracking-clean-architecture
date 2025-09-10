@@ -39,7 +39,12 @@ export class InMemoryUsersRepository implements UsersRepository {
     return user
   }
 
-  async findAllDeliverymen(): Promise<User[]> {
-    return this.items.filter((user) => user.role === 'deliveryman')
+  async findAllDeliverymen({ page }: { page: number }): Promise<User[]> {
+    const perPage = 20
+    const start = (page - 1) * perPage
+    const end = start + perPage
+    return this.items
+      .filter((user) => user.role === 'deliveryman')
+      .slice(start, end)
   }
 }
