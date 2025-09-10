@@ -1,11 +1,13 @@
 import { Order } from '@/domain/order-control/enterprise/entities//order'
+import { Injectable } from '@nestjs/common'
 
-export interface OrdersRepository {
-  create(order: Order): Promise<void>
-  findById(id: string): Promise<Order | null>
-  save(order: Order): Promise<Order>
-  delete(id: string): Promise<void>
-  findAll(): Promise<Order[]>
-  findNearby(neighborhood: string): Promise<Order[]>
-  findByDeliverymanId(deliverymanId: string): Promise<Order[]>
+@Injectable()
+export abstract class OrdersRepository {
+  abstract create(order: Order): Promise<void>
+  abstract findById(id: string): Promise<Order | null>
+  abstract save(order: Order): Promise<Order>
+  abstract delete(id: string): Promise<void>
+  abstract findAll(): Promise<Order[]>
+  abstract findNearby(neighborhood: string): Promise<Order[]>
+  abstract findByDeliverymanId(deliverymanId: string): Promise<Order[]>
 }

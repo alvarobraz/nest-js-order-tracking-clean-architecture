@@ -1,9 +1,10 @@
 import { Order } from '@/domain/order-control/enterprise/entities/order'
-import { OrdersRepository } from '@/domain/order-control/application/repositories/orders-repository'
+import type { OrdersRepository } from '@/domain/order-control/application/repositories/orders-repository'
 import { UsersRepository } from '@/domain/order-control/application/repositories/users-repository'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { Either, left, right } from '@/core/either'
 import { OnlyActiveAdminsCanCreateOrdersError } from './errors/only-active-admins-can-create-orders-error'
+import { Injectable } from '@nestjs/common'
 
 interface CreateOrderUseCaseRequest {
   adminId: string
@@ -23,6 +24,7 @@ type CreateOrderUseCaseResponse = Either<
   }
 >
 
+@Injectable()
 export class CreateOrderUseCase {
   constructor(
     private ordersRepository: OrdersRepository,
