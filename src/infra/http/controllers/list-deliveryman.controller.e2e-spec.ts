@@ -109,8 +109,8 @@ describe('List Deliverymen Controller (e2e)', () => {
     expect(response.status).toBe(HttpStatus.OK)
     expect(response.body).toEqual({
       users: [
-        UserPresenter.toHTTP(deliveryman2),
         UserPresenter.toHTTP(deliveryman1),
+        UserPresenter.toHTTP(deliveryman2),
       ],
     })
   })

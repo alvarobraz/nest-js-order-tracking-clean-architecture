@@ -48,9 +48,21 @@ export class CreateAccountController {
     @Body(bodyValidationPipe) body: CreateAccountBodySchema,
     @CurrentUser() user: UserPayload,
   ) {
+    console.log('user => ' + JSON.stringify(user))
     const { name, cpf, password, email, phone } = body
 
     const adminId = user.sub
+
+    const userIsNotAdmin = await this.prisma.user.findFirst({
+      where: {
+        id: adminId,
+      },
+    })
+
+    if (userIsNotAdmin?.role !== 'admin') {
+      throw new ConflictException('User is not admin.')
+    }
+
     const userWithSameCpf = await this.prisma.user.findUnique({
       where: {
         cpf,
