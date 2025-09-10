@@ -7,11 +7,11 @@ export interface UserProps {
   password: string
   role: 'admin' | 'deliveryman'
   name: string
-  email?: string
-  phone?: string
+  email?: string | null
+  phone?: string | null
   status: 'active' | 'inactive'
   createdAt: Date
-  updatedAt?: Date
+  updatedAt?: Date | null
 }
 
 export class User extends Entity<UserProps> {
@@ -32,11 +32,11 @@ export class User extends Entity<UserProps> {
   }
 
   get email() {
-    return this.props.email
+    return this.props.email ?? null
   }
 
   get phone() {
-    return this.props.phone
+    return this.props.phone ?? null
   }
 
   get status() {
@@ -65,12 +65,12 @@ export class User extends Entity<UserProps> {
     this.touch()
   }
 
-  set email(email: string | undefined) {
+  set email(email: string | null) {
     this.props.email = email
     this.touch()
   }
 
-  set phone(phone: string | undefined) {
+  set phone(phone: string | null) {
     this.props.phone = phone
     this.touch()
   }

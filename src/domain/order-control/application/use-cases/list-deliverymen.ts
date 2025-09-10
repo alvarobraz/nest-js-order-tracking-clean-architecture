@@ -4,6 +4,7 @@ import { User } from '@/domain/order-control/enterprise/entities/user'
 import { OnlyActiveAdminsCanListDeliverymenError } from './errors/only-active-admins-can-list-deliverymen-error'
 
 interface ListDeliverymenUseCaseRequest {
+  page: number
   adminId: string
 }
 
@@ -16,6 +17,7 @@ export class ListDeliverymenUseCase {
   constructor(private usersRepository: UsersRepository) {}
 
   async execute({
+    page,
     adminId,
   }: ListDeliverymenUseCaseRequest): Promise<ListDeliverymenUseCaseResponse> {
     const admin = await this.usersRepository.findById(adminId)
@@ -23,7 +25,7 @@ export class ListDeliverymenUseCase {
       return left(new OnlyActiveAdminsCanListDeliverymenError())
     }
 
-    const deliverymen = await this.usersRepository.findAllDeliverymen()
+    const deliverymen = await this.usersRepository.findAllDeliverymen({ page })
     return right(deliverymen.filter((user) => user.status === 'active'))
   }
 }

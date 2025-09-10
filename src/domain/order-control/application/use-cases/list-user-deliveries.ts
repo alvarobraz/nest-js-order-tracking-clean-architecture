@@ -1,11 +1,12 @@
 import { Either, left, right } from '@/core/either'
-import { OrdersRepository } from '@/domain/order-control/application/repositories/orders-repository'
+import type { OrdersRepository } from '@/domain/order-control/application/repositories/orders-repository'
 import { UsersRepository } from '@/domain/order-control/application/repositories/users-repository'
 import { Order } from '@/domain/order-control/enterprise/entities/order'
 
 import { UserNotFoundError } from './errors/user-not-found-error'
 import { OnlyActiveAdminsCanListDeliverymenError } from './errors/only-active-admins-can-list-deliverymen-error'
 import { UserNotDeliverymanError } from './errors/user-not-deliveryman-error'
+import { Injectable } from '@nestjs/common'
 
 interface ListUserDeliveriesUseCaseRequest {
   adminId: string
@@ -19,6 +20,7 @@ type ListUserDeliveriesUseCaseResponse = Either<
   Order[]
 >
 
+@Injectable()
 export class ListUserDeliveriesUseCase {
   constructor(
     private ordersRepository: OrdersRepository,

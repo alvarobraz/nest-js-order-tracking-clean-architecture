@@ -73,7 +73,7 @@ export class CreateRecipientController {
       },
     })
 
-    if (!admin || admin.role !== 'ADMIN' || admin.status !== 'ACTIVE') {
+    if (!admin || admin.role !== 'admin' || admin.status !== 'active') {
       throw new UnauthorizedException(
         'Only active admins can create recipients.',
       )

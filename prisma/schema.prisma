@@ -8,31 +8,31 @@ datasource db {
 }
 
 enum UserRole {
-  ADMIN
-  DELIVERYMAN
+  admin
+  deliveryman
 }
 
 enum UserStatus {
-  ACTIVE
-  INACTIVE
+  active
+  inactive
 }
 
 enum OrderStatus {
-  PENDING
-  PICKED_UP
-  DELIVERED
-  RETURNED
+  pending
+  picked_up
+  delivered
+  returned
 }
 
 model User {
   id        String     @id @default(uuid())
   cpf       String     @unique
   password  String
-  role      UserRole   @default(DELIVERYMAN)
+  role      UserRole   @default(deliveryman)
   name      String
   email     String?
   phone     String?
-  status    UserStatus @default(ACTIVE)
+  status    UserStatus @default(active)
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime?  @updatedAt @map("updated_at")
 
@@ -68,7 +68,7 @@ model Order {
   id            String      @id @default(uuid())
   recipientId   String      @map("recipient_id")
   deliverymanId String?     @map("deliveryman_id")
-  status        OrderStatus @default(PENDING)
+  status        OrderStatus @default(pending)
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime?   @updatedAt @map("updated_at")
 

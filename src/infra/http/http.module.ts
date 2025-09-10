@@ -4,6 +4,7 @@ import { CreateAccountController } from './controllers/create-account.controller
 import { CreateOrderController } from './controllers/create-order.controller'
 import { CreateRecipientController } from './controllers/create-recipient.controller'
 import { DatabaseModule } from '../database/database.module'
+import { CreateDeliverymanUseCase } from '@/domain/order-control/application/use-cases/create-deliveryman'
 
 @Module({
   imports: [DatabaseModule],
@@ -13,5 +14,6 @@ import { DatabaseModule } from '../database/database.module'
     CreateOrderController,
     CreateRecipientController,
   ],
+  providers: [CreateDeliverymanUseCase],
 })
 export class HttpModule {}

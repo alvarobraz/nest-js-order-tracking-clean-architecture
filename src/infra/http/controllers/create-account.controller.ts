@@ -4,12 +4,16 @@ import {
   Controller,
   HttpCode,
   Post,
-  UsePipes,
+  UseGuards,
 } from '@nestjs/common'
 import { hash } from 'bcryptjs'
-import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import { z } from 'zod'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
+import { CreateDeliverymanUseCase } from '@/domain/order-control/application/use-cases/create-deliveryman'
+import { CurrentUser } from '@/infra/auth/current-user-decorator'
+import type { UserPayload } from '@/infra/auth/jwt.strategy'
+import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
 
 const createAccountBodySchema = z.object({
   name: z.string().trim().nonempty({ message: 'O nome é obrigatório' }),
@@ -18,7 +22,7 @@ const createAccountBodySchema = z.object({
     .max(11)
     .length(11, { message: 'O CPF deve ter exatamente 11 dígitos' })
     .regex(/^\d{11}$/, { message: 'O CPF deve conter apenas dígitos' })
-    .transform((value) => value.replace(/[^\d]/g, '')), // Remove qualquer pontuação, se fornecida
+    .transform((value) => value.replace(/[^\d]/g, '')),
   password: z.string(),
   email: z.string().email({ message: 'O e-mail deve ser válido' }),
   phone: z.string().regex(/^\d{2}\s?9\d{4}-?\d{4}$/, {
@@ -26,39 +30,58 @@ const createAccountBodySchema = z.object({
   }),
 })
 
+const bodyValidationPipe = new ZodValidationPipe(createAccountBodySchema)
+
 type CreateAccountBodySchema = z.infer<typeof createAccountBodySchema>
 
 @Controller('/accounts')
 export class CreateAccountController {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private createDeliveryman: CreateDeliverymanUseCase,
+  ) {}
 
   @Post()
   @HttpCode(201)
-  @UsePipes(new ZodValidationPipe(createAccountBodySchema))
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handle(@Body() body: CreateAccountBodySchema) {
+  @UseGuards(JwtAuthGuard)
+  async handle(
+    @Body(bodyValidationPipe) body: CreateAccountBodySchema,
+    @CurrentUser() user: UserPayload,
+  ) {
     const { name, cpf, password, email, phone } = body
 
-    const userWithSameEmail = await this.prisma.user.findUnique({
+    const adminId = user.sub
+    const userWithSameCpf = await this.prisma.user.findUnique({
       where: {
         cpf,
       },
     })
 
-    if (userWithSameEmail) {
+    if (userWithSameCpf) {
       throw new ConflictException('User with same cpf address already exists.')
+    }
+
+    const userWithSameEmail = await this.prisma.user.findFirst({
+      where: {
+        email,
+      },
+    })
+
+    if (userWithSameEmail) {
+      throw new ConflictException(
+        'User with same email address already exists.',
+      )
     }
 
     const hashedPassword = await hash(password, 8)
 
-    await this.prisma.user.create({
-      data: {
-        name,
-        cpf,
-        password: hashedPassword,
-        email,
-        phone,
-      },
+    await this.createDeliveryman.execute({
+      adminId,
+      name,
+      cpf,
+      password: hashedPassword,
+      email,
+      phone,
     })
   }
 }

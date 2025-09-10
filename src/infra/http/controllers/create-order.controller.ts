@@ -39,7 +39,7 @@ export class CreateOrderController {
       },
     })
 
-    if (!admin || admin.role !== 'ADMIN' || admin.status !== 'ACTIVE') {
+    if (!admin || admin.role !== 'admin' || admin.status !== 'active') {
       throw new UnauthorizedException('Only active admins can create orders.')
     }
 
@@ -48,8 +48,6 @@ export class CreateOrderController {
         id: recipientId,
       },
     })
-
-    // console.log('recipient ->' + JSON.stringify(recipient))
 
     if (!recipient) {
       throw new UnauthorizedException('Not Found recipient.')
