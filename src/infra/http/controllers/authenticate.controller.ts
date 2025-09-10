@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Post,
@@ -7,10 +8,12 @@ import {
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 
-import { compare } from 'bcryptjs'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
 import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import { z } from 'zod'
+import { LoginUserUseCase } from '@/domain/order-control/application/use-cases/login-user'
+import { InvalidCredentialsError } from '@/domain/order-control/application/use-cases/errors/invalid-credentials-error'
+import { UserAccountIsInactiveError } from '@/domain/order-control/application/use-cases/errors/user-account-is-inactive-error'
 
 const authenticateBodySchema = z.object({
   cpf: z
@@ -29,6 +32,7 @@ export class AuthenticateController {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
+    private loginUser: LoginUserUseCase,
   ) {}
 
   @Post()
@@ -36,23 +40,25 @@ export class AuthenticateController {
   async handle(@Body() body: AuthenticateBodySchema) {
     const { cpf, password } = body
 
-    const user = await this.prisma.user.findUnique({
-      where: {
-        cpf,
-      },
+    const result = await this.loginUser.execute({
+      cpf,
+      password,
     })
 
-    if (!user) {
-      throw new UnauthorizedException('User credentials do not match.')
+    if (result.isLeft()) {
+      const error = result.value
+
+      switch (error.constructor) {
+        case InvalidCredentialsError:
+          throw new UnauthorizedException(error.message)
+        case UserAccountIsInactiveError:
+          throw new UnauthorizedException(error.message)
+        default:
+          throw new BadRequestException(error.message)
+      }
     }
 
-    const isPasswordValid = await compare(password, user.password)
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('User credentials do not match.')
-    }
-
-    const accessToken = this.jwt.sign({ sub: user.id })
+    const accessToken = this.jwt.sign({ sub: result.value })
 
     return {
       access_token: accessToken,

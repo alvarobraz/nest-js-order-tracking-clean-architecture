@@ -48,7 +48,6 @@ export class CreateAccountController {
     @Body(bodyValidationPipe) body: CreateAccountBodySchema,
     @CurrentUser() user: UserPayload,
   ) {
-    console.log('user => ' + JSON.stringify(user))
     const { name, cpf, password, email, phone } = body
 
     const adminId = user.sub

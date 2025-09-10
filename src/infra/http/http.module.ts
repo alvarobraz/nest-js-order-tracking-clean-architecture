@@ -7,9 +7,11 @@ import { DatabaseModule } from '../database/database.module'
 import { CreateDeliverymanUseCase } from '@/domain/order-control/application/use-cases/create-deliveryman'
 import { ListDeliverymenUseCase } from '@/domain/order-control/application/use-cases/list-deliverymen'
 import { FetchRecentQuestionsController } from './controllers/list-deliveryman.controller'
+import { LoginUserUseCase } from '@/domain/order-control/application/use-cases/login-user'
+import { CryptographyModule } from '../cryptography/cryptography.module'
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, CryptographyModule],
   controllers: [
     CreateAccountController,
     AuthenticateController,
@@ -17,6 +19,10 @@ import { FetchRecentQuestionsController } from './controllers/list-deliveryman.c
     CreateRecipientController,
     FetchRecentQuestionsController,
   ],
-  providers: [CreateDeliverymanUseCase, ListDeliverymenUseCase],
+  providers: [
+    CreateDeliverymanUseCase,
+    ListDeliverymenUseCase,
+    LoginUserUseCase,
+  ],
 })
 export class HttpModule {}
