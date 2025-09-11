@@ -11,6 +11,8 @@ import { LoginUserUseCase } from '@/domain/order-control/application/use-cases/l
 import { CryptographyModule } from '../cryptography/cryptography.module'
 import { UpdateDeliverymanUseCase } from '@/domain/order-control/application/use-cases/update-deliveryman'
 import { UpdateDeliverymanController } from './controllers/update.deliveryman'
+import { DeliverymenByIdUseCase } from '@/domain/order-control/application/use-cases/deliverymen-by-id'
+import { DeliverymenByIdController } from './controllers/deliveryman-by-id.controller'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule],
@@ -21,12 +23,14 @@ import { UpdateDeliverymanController } from './controllers/update.deliveryman'
     CreateRecipientController,
     FetchRecentQuestionsController,
     UpdateDeliverymanController,
+    DeliverymenByIdController,
   ],
   providers: [
     CreateDeliverymanUseCase,
     ListDeliverymenUseCase,
     LoginUserUseCase,
     UpdateDeliverymanUseCase,
+    DeliverymenByIdUseCase,
   ],
 })
 export class HttpModule {}

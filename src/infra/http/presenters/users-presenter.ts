@@ -5,14 +5,11 @@ export class UserPresenter {
     return {
       id: user.id.toString(),
       cpf: user.cpf,
-      password: user.password,
       role: user.role,
       name: user.name,
       email: user.email,
       phone: user.phone,
       status: user.status,
-      createdAt: user.createdAt.toString(),
-      updatedAt: user.updatedAt,
     }
   }
 }
