@@ -16,7 +16,7 @@ export interface UserProps {
 
 export class User extends Entity<UserProps> {
   get cpf() {
-    return this.props.cpf
+    return this.props.cpf ?? null
   }
 
   get password() {

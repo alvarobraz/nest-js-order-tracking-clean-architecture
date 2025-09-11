@@ -1,4 +1,10 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common'
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+} from '@nestjs/common'
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
 import { z } from 'zod'
@@ -6,6 +12,7 @@ import { ListDeliverymenUseCase } from '@/domain/order-control/application/use-c
 import { CurrentUser } from '@/infra/auth/current-user-decorator'
 import type { UserPayload } from '@/infra/auth/jwt.strategy'
 import { UserPresenter } from '../presenters/users-presenter'
+import { OnlyActiveAdminsCanListDeliverymenError } from '@/domain/order-control/application/use-cases/errors/only-active-admins-can-list-deliverymen-error'
 
 const pageQueryParamSchema = z
   .string()
@@ -34,7 +41,14 @@ export class FetchRecentQuestionsController {
     })
 
     if (result.isLeft()) {
-      throw new Error()
+      const error = result.value
+
+      switch (error.constructor) {
+        case OnlyActiveAdminsCanListDeliverymenError:
+          throw new OnlyActiveAdminsCanListDeliverymenError()
+        default:
+          throw new BadRequestException(error.message)
+      }
     }
 
     const users = result.value

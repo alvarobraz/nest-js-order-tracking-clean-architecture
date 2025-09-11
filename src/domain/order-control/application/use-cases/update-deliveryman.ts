@@ -3,10 +3,13 @@ import { UsersRepository } from '@/domain/order-control/application/repositories
 import { ActiveDeliverymanNotFoundError } from './errors/active-deliveryman-not-found-error'
 import { OnlyActiveAdminsCanUpdateDeliverymenError } from './errors/only-active-admins-can-update-deliverymen-error'
 import { User } from '../../enterprise/entities/user'
+import { Injectable } from '@nestjs/common'
+import { HashGenerator } from '../cryptography/hash-generator'
 
 interface UpdateDeliverymanUseCaseRequest {
   adminId: string
   deliverymanId: string
+  password?: string
   name?: string
   email?: string
   phone?: string
@@ -19,12 +22,17 @@ type UpdateDeliverymanUseCaseResponse = Either<
   }
 >
 
+@Injectable()
 export class UpdateDeliverymanUseCase {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(
+    private usersRepository: UsersRepository,
+    private hashGenerator: HashGenerator,
+  ) {}
 
   async execute({
     adminId,
     deliverymanId,
+    password,
     name,
     email,
     phone,
@@ -41,6 +49,11 @@ export class UpdateDeliverymanUseCase {
       deliveryman.status !== 'active'
     ) {
       return left(new ActiveDeliverymanNotFoundError())
+    }
+
+    if (password !== undefined) {
+      const hashedPassword = await this.hashGenerator.hash(password)
+      deliveryman.password = hashedPassword
     }
 
     if (name !== undefined) {
