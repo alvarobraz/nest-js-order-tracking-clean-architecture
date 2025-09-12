@@ -50,7 +50,7 @@ describe('Create Recipient (E2E)', () => {
         city: 'São Paulo',
         state: 'SP',
         zipCode: 12345678,
-        phone: 11987654321,
+        phone: '11987654321',
         email: 'joao.silva@email.com',
       })
 

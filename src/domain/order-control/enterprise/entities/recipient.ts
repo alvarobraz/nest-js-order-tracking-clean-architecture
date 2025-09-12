@@ -5,15 +5,15 @@ import { Optional } from '@/core/types/optional'
 export interface RecipientProps {
   name: string
   street: string
-  number: string
+  number: number
   neighborhood: string
   city: string
   state: string
-  zipCode: string
+  zipCode: number
   phone: string
   email: string
   createdAt: Date
-  updatedAt?: Date
+  updatedAt?: Date | null
 }
 
 export class Recipient extends Entity<RecipientProps> {
@@ -75,7 +75,7 @@ export class Recipient extends Entity<RecipientProps> {
     this.touch()
   }
 
-  set number(number: string) {
+  set number(number: number) {
     this.props.number = number
     this.touch()
   }
@@ -95,7 +95,7 @@ export class Recipient extends Entity<RecipientProps> {
     this.touch()
   }
 
-  set zipCode(zipCode: string) {
+  set zipCode(zipCode: number) {
     this.props.zipCode = zipCode
     this.touch()
   }

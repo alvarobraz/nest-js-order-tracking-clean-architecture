@@ -10,11 +10,11 @@ interface UpdateRecipientUseCaseRequest {
   recipientId: string
   name?: string
   street?: string
-  number?: string
+  number?: number
   neighborhood?: string
   city?: string
   state?: string
-  zipCode?: string
+  zipCode?: number
   phone?: string
   email?: string
   latitude?: number

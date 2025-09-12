@@ -46,8 +46,6 @@ export class CreateAccountController {
   ) {
     const { name, cpf, password, email, phone } = body
 
-    // console.log('user =>' + JSON.stringify(user))
-
     const adminId = user.sub
 
     const result = await this.createDeliveryman.execute({

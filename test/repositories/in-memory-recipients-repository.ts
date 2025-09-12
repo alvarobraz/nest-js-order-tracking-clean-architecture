@@ -13,6 +13,11 @@ export class InMemoryRecipientsRepository implements RecipientsRepository {
     return recipient || null
   }
 
+  async findByEmail(email: string): Promise<Recipient | null> {
+    const recipient = this.items.find((item) => item.email === email)
+    return recipient || null
+  }
+
   async save(recipient: Recipient): Promise<Recipient> {
     const index = this.items.findIndex(
       (item) => item.id.toString() === recipient.id.toString(),

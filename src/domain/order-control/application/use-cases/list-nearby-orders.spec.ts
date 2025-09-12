@@ -56,7 +56,7 @@ describe('List Deliverymen Use Case', () => {
     await inMemoryUsersRepository.create(deliveryman2)
     await inMemoryUsersRepository.create(deliveryman3)
 
-    const result = await sut.execute({ adminId: 'admin-1' })
+    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
 
     expect(result.isRight()).toBe(true)
     expect(result.value).toBeInstanceOf(Array)
@@ -85,7 +85,9 @@ describe('List Deliverymen Use Case', () => {
       ]),
     )
     expect(result.value).toHaveLength(2)
-    expect(await inMemoryUsersRepository.findAllDeliverymen()).toHaveLength(3)
+    expect(
+      await inMemoryUsersRepository.findAllDeliverymen({ page: 1 }),
+    ).toHaveLength(3)
   })
 
   it('should return an empty array if no active deliverymen exist', async () => {
@@ -109,17 +111,19 @@ describe('List Deliverymen Use Case', () => {
     await inMemoryUsersRepository.create(admin)
     await inMemoryUsersRepository.create(deliveryman)
 
-    const result = await sut.execute({ adminId: 'admin-1' })
+    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
 
     expect(result.isRight()).toBe(true)
     expect(result.value).toBeInstanceOf(Array)
     expect(result.value).toEqual([])
     expect(result.value).toHaveLength(0)
-    expect(await inMemoryUsersRepository.findAllDeliverymen()).toHaveLength(1)
+    expect(
+      await inMemoryUsersRepository.findAllDeliverymen({ page: 1 }),
+    ).toHaveLength(1)
   })
 
   it('should return an error if admin does not exist', async () => {
-    const result = await sut.execute({ adminId: 'admin-1' })
+    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
 
     expect(result.isLeft()).toBe(true)
     expect(result.value).toBeInstanceOf(OnlyActiveAdminsCanListDeliverymenError)
@@ -137,7 +141,7 @@ describe('List Deliverymen Use Case', () => {
 
     await inMemoryUsersRepository.create(deliveryman)
 
-    const result = await sut.execute({ adminId: 'deliveryman-1' })
+    const result = await sut.execute({ adminId: 'deliveryman-1', page: 1 })
 
     expect(result.isLeft()).toBe(true)
     expect(result.value).toBeInstanceOf(OnlyActiveAdminsCanListDeliverymenError)
@@ -155,7 +159,7 @@ describe('List Deliverymen Use Case', () => {
 
     await inMemoryUsersRepository.create(admin)
 
-    const result = await sut.execute({ adminId: 'admin-1' })
+    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
 
     expect(result.isLeft()).toBe(true)
     expect(result.value).toBeInstanceOf(OnlyActiveAdminsCanListDeliverymenError)

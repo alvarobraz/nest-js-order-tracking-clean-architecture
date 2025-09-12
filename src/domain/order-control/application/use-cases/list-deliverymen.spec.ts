@@ -56,7 +56,7 @@ describe('List Deliverymen Use Case', () => {
     await inMemoryUsersRepository.create(deliveryman2)
     await inMemoryUsersRepository.create(deliveryman3)
 
-    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
+    const result = await sut.execute({ page: 1, adminId: 'admin-1' })
 
     expect(result.isRight()).toBe(true)
     expect(result.value).toBeInstanceOf(Array)

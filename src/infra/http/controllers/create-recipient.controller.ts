@@ -1,5 +1,7 @@
 import {
+  BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Post,
   UnauthorizedException,
@@ -9,8 +11,10 @@ import { CurrentUser } from '@/infra/auth/current-user-decorator'
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 import type { UserPayload } from '@/infra/auth/jwt.strategy'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
-import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import z from 'zod'
+import { CreateRecipientUseCase } from '@/domain/order-control/application/use-cases/create-recipient'
+import { OnlyActiveAdminsCanCreateRecipientsError } from '@/domain/order-control/application/use-cases/errors/only-active-admins-can-create-recipients-error'
+import { RecipientAlreadyExistsError } from '@/domain/order-control/application/use-cases/errors/recipient-already-exists'
 
 const createRecipientBodySchema = z.object({
   name: z.string().min(7, 'Name is required'),
@@ -30,13 +34,9 @@ const createRecipientBodySchema = z.object({
     .refine((value) => /^\d{8}$/.test(value.toString()), {
       message: 'ZipCode must be an 8-digit number (e.g., 12345678)',
     }),
-  phone: z
-    .number()
-    .int()
-    .positive()
-    .refine((value) => /^\d{10,11}$/.test(value.toString()), {
-      message: 'Phone must be a 10 or 11-digit number (e.g., 11987654321)',
-    }),
+  phone: z.string().refine((value) => /^\d{10,11}$/.test(value.toString()), {
+    message: 'Phone must be a 10 or 11-digit number (e.g., 11987654321)',
+  }),
   email: z.string().email('Invalid email format'),
 })
 
@@ -47,7 +47,7 @@ type CreateRecipientBodySchema = z.infer<typeof createRecipientBodySchema>
 @Controller('/recipients')
 @UseGuards(JwtAuthGuard)
 export class CreateRecipientController {
-  constructor(private prisma: PrismaService) {}
+  constructor(private createRecipient: CreateRecipientUseCase) {}
 
   @Post()
   async handle(
@@ -67,31 +67,29 @@ export class CreateRecipientController {
     } = body
     const adminId = user.sub
 
-    const admin = await this.prisma.user.findUnique({
-      where: {
-        id: adminId,
-      },
+    const result = await this.createRecipient.execute({
+      adminId,
+      name,
+      street,
+      number,
+      neighborhood,
+      city,
+      state,
+      zipCode,
+      phone,
+      email,
     })
 
-    if (!admin || admin.role !== 'admin' || admin.status !== 'active') {
-      throw new UnauthorizedException(
-        'Only active admins can create recipients.',
-      )
+    if (result.isLeft()) {
+      const error = result.value
+      switch (error.constructor) {
+        case OnlyActiveAdminsCanCreateRecipientsError:
+          throw new UnauthorizedException(error.message)
+        case RecipientAlreadyExistsError:
+          throw new ConflictException(error.message)
+        default:
+          throw new BadRequestException(error.message)
+      }
     }
-
-    await this.prisma.recipient.create({
-      data: {
-        userId: adminId,
-        name,
-        street,
-        number,
-        neighborhood,
-        city,
-        state,
-        zipCode,
-        phone,
-        email,
-      },
-    })
   }
 }

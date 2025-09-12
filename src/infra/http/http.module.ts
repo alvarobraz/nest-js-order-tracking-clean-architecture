@@ -13,6 +13,7 @@ import { UpdateDeliverymanUseCase } from '@/domain/order-control/application/use
 import { UpdateDeliverymanController } from './controllers/update.deliveryman'
 import { DeliverymenByIdUseCase } from '@/domain/order-control/application/use-cases/deliverymen-by-id'
 import { DeliverymenByIdController } from './controllers/deliveryman-by-id.controller'
+import { CreateRecipientUseCase } from '@/domain/order-control/application/use-cases/create-recipient'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule],
@@ -31,6 +32,7 @@ import { DeliverymenByIdController } from './controllers/deliveryman-by-id.contr
     LoginUserUseCase,
     UpdateDeliverymanUseCase,
     DeliverymenByIdUseCase,
+    CreateRecipientUseCase,
   ],
 })
 export class HttpModule {}

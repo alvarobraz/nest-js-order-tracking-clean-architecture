@@ -27,7 +27,7 @@ export class ListRecipientsUseCase {
       return left(new OnlyActiveAdminsCanListRecipientsError())
     }
 
-    const listRecipients = await this.recipientsRepository.findAll()
+    const listRecipients = await this.recipientsRepository.findAll({ page: 1 })
     return right(listRecipients)
   }
 }

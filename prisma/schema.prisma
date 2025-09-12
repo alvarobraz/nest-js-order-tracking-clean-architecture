@@ -53,7 +53,7 @@ model Recipient {
   city         String
   state        String
   zipCode      Int       @map("zip_code")
-  phone        BigInt
+  phone        String
   email        String
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime? @updatedAt @map("updated_at")
