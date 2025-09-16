@@ -4,6 +4,7 @@ import { UsersRepository } from '@/domain/order-control/application/repositories
 import { RecipientNotFoundError } from './errors/recipient-not-found-error'
 import { Recipient } from '../../enterprise/entities/recipient'
 import { OnlyActiveAdminsCanUpdateRecipientsError } from './errors/only-active-admins-can-update-recipients-error'
+import { Injectable } from '@nestjs/common'
 
 interface UpdateRecipientUseCaseRequest {
   adminId: string
@@ -28,6 +29,7 @@ type UpdateRecipientCaseResponse = Either<
   }
 >
 
+@Injectable()
 export class UpdateRecipientUseCase {
   constructor(
     private recipientsRepository: RecipientsRepository,
@@ -47,6 +49,9 @@ export class UpdateRecipientUseCase {
     phone,
     email,
   }: UpdateRecipientUseCaseRequest): Promise<UpdateRecipientCaseResponse> {
+    console.log('adminId')
+    console.log(adminId)
+
     const admin = await this.usersRepository.findById(adminId)
     if (!admin || admin.role !== 'admin' || admin.status !== 'active') {
       return left(new OnlyActiveAdminsCanUpdateRecipientsError())

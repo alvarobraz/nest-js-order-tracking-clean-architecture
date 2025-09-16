@@ -10,7 +10,7 @@ import { FetchRecentQuestionsController } from './controllers/list-deliveryman.c
 import { LoginUserUseCase } from '@/domain/order-control/application/use-cases/login-user'
 import { CryptographyModule } from '../cryptography/cryptography.module'
 import { UpdateDeliverymanUseCase } from '@/domain/order-control/application/use-cases/update-deliveryman'
-import { UpdateDeliverymanController } from './controllers/update.deliveryman'
+import { UpdateDeliverymanController } from './controllers/update.deliveryman.controller'
 import { DeliverymenByIdUseCase } from '@/domain/order-control/application/use-cases/deliverymen-by-id'
 import { DeliverymenByIdController } from './controllers/deliveryman-by-id.controller'
 import { CreateRecipientUseCase } from '@/domain/order-control/application/use-cases/create-recipient'
@@ -18,6 +18,8 @@ import { RecipientByIdUseCase } from '@/domain/order-control/application/use-cas
 import { RecipientByIdController } from './controllers/recipient-by-id.controller'
 import { ListRecipientsUseCase } from '@/domain/order-control/application/use-cases/list-recipients'
 import { ListRecipientsController } from './controllers/list-recipients.controller'
+import { UpdateRecipientUseCase } from '@/domain/order-control/application/use-cases/update-recipient'
+import { UpdateRecipientController } from './controllers/update-recipient.controller'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule],
@@ -31,6 +33,7 @@ import { ListRecipientsController } from './controllers/list-recipients.controll
     DeliverymenByIdController,
     RecipientByIdController,
     ListRecipientsController,
+    UpdateRecipientController,
   ],
   providers: [
     CreateDeliverymanUseCase,
@@ -41,6 +44,7 @@ import { ListRecipientsController } from './controllers/list-recipients.controll
     CreateRecipientUseCase,
     RecipientByIdUseCase,
     ListRecipientsUseCase,
+    UpdateRecipientUseCase,
   ],
 })
 export class HttpModule {}
