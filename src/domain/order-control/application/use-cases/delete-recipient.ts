@@ -3,6 +3,7 @@ import { RecipientsRepository } from '@/domain/order-control/application/reposit
 import { UsersRepository } from '@/domain/order-control/application/repositories/users-repository'
 import { OnlyActiveAdminsCanDeleteRecipientsError } from './errors/only-active-admins-can-delete-recipients-error'
 import { RecipientNotFoundError } from './errors/recipient-not-found-error'
+import { Injectable } from '@nestjs/common'
 
 interface DeleteRecipientUseCaseRequest {
   adminId: string
@@ -14,6 +15,7 @@ type DeleteRecipientUseCaseUseCaseResponse = Either<
   null
 >
 
+@Injectable()
 export class DeleteRecipientUseCase {
   constructor(
     private recipientsRepository: RecipientsRepository,

@@ -20,6 +20,8 @@ import { ListRecipientsUseCase } from '@/domain/order-control/application/use-ca
 import { ListRecipientsController } from './controllers/list-recipients.controller'
 import { UpdateRecipientUseCase } from '@/domain/order-control/application/use-cases/update-recipient'
 import { UpdateRecipientController } from './controllers/update-recipient.controller'
+import { DeleteRecipientUseCase } from '@/domain/order-control/application/use-cases/delete-recipient'
+import { DeleteRecipientController } from './controllers/delete-recipient.controller'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule],
@@ -34,6 +36,7 @@ import { UpdateRecipientController } from './controllers/update-recipient.contro
     RecipientByIdController,
     ListRecipientsController,
     UpdateRecipientController,
+    DeleteRecipientController,
   ],
   providers: [
     CreateDeliverymanUseCase,
@@ -45,6 +48,7 @@ import { UpdateRecipientController } from './controllers/update-recipient.contro
     RecipientByIdUseCase,
     ListRecipientsUseCase,
     UpdateRecipientUseCase,
+    DeleteRecipientUseCase,
   ],
 })
 export class HttpModule {}
