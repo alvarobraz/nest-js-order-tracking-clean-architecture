@@ -5,15 +5,15 @@ import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { makeUser } from 'test/factories/make-users'
 import { left } from '@/core/either'
 import { OnlyActiveAdminsCanListDeliverymenError } from './errors/only-active-admins-can-list-deliverymen-error'
-import { ListDeliverymenByIdUseCase } from './deliverymen-by-id'
+import { DeliverymenByIdUseCase } from './deliverymen-by-id'
 
 let inMemoryUsersRepository: InMemoryUsersRepository
-let sut: ListDeliverymenByIdUseCase
+let sut: DeliverymenByIdUseCase
 
 describe('List Deliverymen By Id Use Case', () => {
   beforeEach(() => {
     inMemoryUsersRepository = new InMemoryUsersRepository()
-    sut = new ListDeliverymenByIdUseCase(inMemoryUsersRepository)
+    sut = new DeliverymenByIdUseCase(inMemoryUsersRepository)
   })
 
   it('should list an active deliverymen if admin is valid and active', async () => {

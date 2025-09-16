@@ -13,7 +13,7 @@ export function makeRecipient(
     {
       name: faker.person.fullName(),
       street: faker.location.street(),
-      number: faker.location.buildingNumber(),
+      number: faker.number.int(),
       neighborhood: faker.location.secondaryAddress(),
       city: faker.location.city(),
       state: faker.location.state({ abbreviated: true }),
