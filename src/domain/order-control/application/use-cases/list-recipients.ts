@@ -3,9 +3,11 @@ import { RecipientsRepository } from '@/domain/order-control/application/reposit
 import { UsersRepository } from '@/domain/order-control/application/repositories/users-repository'
 import { Either, left, right } from '@/core/either'
 import { OnlyActiveAdminsCanListRecipientsError } from './errors/only-active-admins-can-list-recipients-error'
+import { Injectable } from '@nestjs/common'
 
 interface ListRecipientsUseCaseRequest {
   adminId: string
+  page: number
 }
 
 type ListRecipientsUseCaseResponse = Either<
@@ -13,6 +15,7 @@ type ListRecipientsUseCaseResponse = Either<
   Recipient[]
 >
 
+@Injectable()
 export class ListRecipientsUseCase {
   constructor(
     private recipientsRepository: RecipientsRepository,
@@ -21,13 +24,14 @@ export class ListRecipientsUseCase {
 
   async execute({
     adminId,
+    page,
   }: ListRecipientsUseCaseRequest): Promise<ListRecipientsUseCaseResponse> {
     const admin = await this.usersRepository.findById(adminId)
     if (!admin || admin.role !== 'admin' || admin.status !== 'active') {
       return left(new OnlyActiveAdminsCanListRecipientsError())
     }
 
-    const listRecipients = await this.recipientsRepository.findAll({ page: 1 })
+    const listRecipients = await this.recipientsRepository.findAll({ page })
     return right(listRecipients)
   }
 }
