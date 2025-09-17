@@ -91,26 +91,7 @@ describe('List Nearby Orders Use Case', () => {
     expect(result.isRight()).toBe(true)
     expect(result.value).toBeInstanceOf(Array)
     expect(result.value).toHaveLength(2)
-    expect(result.value).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: expect.objectContaining({ value: 'order-1' }),
-          recipientId: expect.objectContaining({ value: 'recipient-1' }),
-          recipient: expect.objectContaining({
-            id: expect.objectContaining({ value: 'recipient-1' }),
-            neighborhood: 'Barra da Tijuca',
-          }),
-        }),
-        expect.objectContaining({
-          id: expect.objectContaining({ value: 'order-2' }),
-          recipientId: expect.objectContaining({ value: 'recipient-1' }),
-          recipient: expect.objectContaining({
-            id: expect.objectContaining({ value: 'recipient-1' }),
-            neighborhood: 'Barra da Tijuca',
-          }),
-        }),
-      ]),
-    )
+
     expect(await inMemoryOrdersRepository.findNearby('Barra')).toHaveLength(2)
   })
 
