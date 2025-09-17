@@ -4,6 +4,7 @@ import { PrismaOrdersMapper } from '../mappers/prisma-orders-mapper'
 import { PaginationParams } from '@/core/repositories/pagination-params'
 import { Injectable } from '@nestjs/common'
 import { OrdersRepository } from '@/domain/order-control/application/repositories/orders-repository'
+import { Recipient } from '@/domain/order-control/enterprise/entities/recipient'
 
 @Injectable()
 export class PrismaOrdersRepository implements OrdersRepository {
@@ -70,21 +71,23 @@ export class PrismaOrdersRepository implements OrdersRepository {
     return orders.map(PrismaOrdersMapper.toDomain)
   }
 
-  findNearby(neighborhood: string): Promise<Order[]> {
-    throw new Error('Method not implemented.')
-  }
+  async findNearby(
+    neighborhood: string,
+  ): Promise<(Order & { recipient?: Recipient })[]> {
+    const orders = await this.prisma.order.findMany({
+      where: {
+        recipient: {
+          neighborhood: {
+            contains: neighborhood,
+            mode: 'insensitive',
+          },
+        },
+      },
+      include: { recipient: true },
+    })
 
-  // async findNearby(neighborhood: string): Promise<Order[]> {
-  //   const orders = await this.prisma.order.findMany({
-  //     where: {
-  //       neighborhood: {
-  //         equals: neighborhood,
-  //         mode: 'insensitive',
-  //       },
-  //     },
-  //   })
-  //   return orders.map(PrismaOrdersMapper.toDomain)
-  // }
+    return orders.map(PrismaOrdersMapper.toDomain)
+  }
 
   async findByDeliverymanId(deliverymanId: string): Promise<Order[]> {
     const orders = await this.prisma.order.findMany({

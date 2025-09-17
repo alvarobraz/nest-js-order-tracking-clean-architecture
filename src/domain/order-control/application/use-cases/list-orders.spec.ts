@@ -49,7 +49,7 @@ describe('List Orders Use Case', () => {
     await inMemoryOrdersRepository.create(order1)
     await inMemoryOrdersRepository.create(order2)
 
-    const result = await sut.execute({ adminId: 'admin-1' })
+    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
 
     expect(result.isRight()).toBe(true)
     expect(result.value).toBeInstanceOf(Array)
@@ -66,7 +66,7 @@ describe('List Orders Use Case', () => {
       ]),
     )
     expect(result.value).toHaveLength(2)
-    expect(await inMemoryOrdersRepository.findAll()).toHaveLength(2)
+    expect(await inMemoryOrdersRepository.findAll({ page: 1 })).toHaveLength(2)
   })
 
   it('should return an empty array if no orders exist', async () => {
@@ -80,17 +80,17 @@ describe('List Orders Use Case', () => {
 
     await inMemoryUsersRepository.create(admin)
 
-    const result = await sut.execute({ adminId: 'admin-1' })
+    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
 
     expect(result.isRight()).toBe(true)
     expect(result.value).toBeInstanceOf(Array)
     expect(result.value).toEqual([])
     expect(result.value).toHaveLength(0)
-    expect(await inMemoryOrdersRepository.findAll()).toHaveLength(0)
+    expect(await inMemoryOrdersRepository.findAll({ page: 1 })).toHaveLength(0)
   })
 
   it('should return an error if admin does not exist', async () => {
-    const result = await sut.execute({ adminId: 'admin-1' })
+    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
 
     expect(result.isLeft()).toBe(true)
     expect(result.value).toBeInstanceOf(OnlyActiveAdminsCanListOrdersError)
@@ -108,7 +108,7 @@ describe('List Orders Use Case', () => {
 
     await inMemoryUsersRepository.create(deliveryman)
 
-    const result = await sut.execute({ adminId: 'deliveryman-1' })
+    const result = await sut.execute({ adminId: 'deliveryman-1', page: 1 })
 
     expect(result.isLeft()).toBe(true)
     expect(result.value).toBeInstanceOf(OnlyActiveAdminsCanListOrdersError)
@@ -126,7 +126,7 @@ describe('List Orders Use Case', () => {
 
     await inMemoryUsersRepository.create(admin)
 
-    const result = await sut.execute({ adminId: 'admin-1' })
+    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
 
     expect(result.isLeft()).toBe(true)
     expect(result.value).toBeInstanceOf(OnlyActiveAdminsCanListOrdersError)

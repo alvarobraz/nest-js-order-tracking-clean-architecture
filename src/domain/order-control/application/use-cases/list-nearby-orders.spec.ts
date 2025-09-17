@@ -1,168 +1,206 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { ListDeliverymenUseCase } from './list-deliverymen'
+import { ListNearbyOrdersUseCase } from './list-nearby-orders'
+import { InMemoryOrdersRepository } from 'test/repositories/in-memory-orders-repository'
 import { InMemoryUsersRepository } from 'test/repositories/in-memory-users-repository'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { makeUser } from 'test/factories/make-users'
+import { makeOrder } from 'test/factories/make-order'
+import { makeRecipient } from 'test/factories/make-recipient'
 import { left } from '@/core/either'
-import { OnlyActiveAdminsCanListDeliverymenError } from './errors/only-active-admins-can-list-deliverymen-error'
+import { OnlyActiveDeliverymenCanListNearbyOrdersError } from './errors/only-active-deliverymen-can-list-nearby-orders-error'
+import { Order } from '@/domain/order-control/enterprise/entities/order'
+import { Recipient } from '@/domain/order-control/enterprise/entities/recipient'
 
+let inMemoryOrdersRepository: InMemoryOrdersRepository
 let inMemoryUsersRepository: InMemoryUsersRepository
-let sut: ListDeliverymenUseCase
+let sut: ListNearbyOrdersUseCase
 
-describe('List Deliverymen Use Case', () => {
+describe('List Nearby Orders Use Case', () => {
   beforeEach(() => {
+    inMemoryOrdersRepository = new InMemoryOrdersRepository()
     inMemoryUsersRepository = new InMemoryUsersRepository()
-    sut = new ListDeliverymenUseCase(inMemoryUsersRepository)
+    sut = new ListNearbyOrdersUseCase(
+      inMemoryOrdersRepository,
+      inMemoryUsersRepository,
+    )
   })
 
-  it('should list active deliverymen if admin is valid and active', async () => {
-    const admin = makeUser(
-      {
-        role: 'admin',
-        status: 'active',
-      },
-      new UniqueEntityID('admin-1'),
-    )
-
-    const deliveryman1 = makeUser(
-      {
-        role: 'deliveryman',
-        status: 'active',
-        name: 'João Silva',
-      },
-      new UniqueEntityID('deliveryman-1'),
-    )
-
-    const deliveryman2 = makeUser(
-      {
-        role: 'deliveryman',
-        status: 'active',
-        name: 'Maria Oliveira',
-      },
-      new UniqueEntityID('deliveryman-2'),
-    )
-
-    const deliveryman3 = makeUser(
-      {
-        role: 'deliveryman',
-        status: 'inactive',
-        name: 'Pedro Santos',
-      },
-      new UniqueEntityID('deliveryman-3'),
-    )
-
-    await inMemoryUsersRepository.create(admin)
-    await inMemoryUsersRepository.create(deliveryman1)
-    await inMemoryUsersRepository.create(deliveryman2)
-    await inMemoryUsersRepository.create(deliveryman3)
-
-    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
-
-    expect(result.isRight()).toBe(true)
-    expect(result.value).toBeInstanceOf(Array)
-    expect(result.value).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          name: 'João Silva',
-          id: new UniqueEntityID('deliveryman-1'),
-          role: 'deliveryman',
-          status: 'active',
-        }),
-        expect.objectContaining({
-          name: 'Maria Oliveira',
-          id: new UniqueEntityID('deliveryman-2'),
-          role: 'deliveryman',
-          status: 'active',
-        }),
-      ]),
-    )
-    expect(result.value).not.toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          name: 'Pedro Santos',
-          id: new UniqueEntityID('deliveryman-3'),
-        }),
-      ]),
-    )
-    expect(result.value).toHaveLength(2)
-    expect(
-      await inMemoryUsersRepository.findAllDeliverymen({ page: 1 }),
-    ).toHaveLength(3)
-  })
-
-  it('should return an empty array if no active deliverymen exist', async () => {
-    const admin = makeUser(
-      {
-        role: 'admin',
-        status: 'active',
-      },
-      new UniqueEntityID('admin-1'),
-    )
-
+  it('should list nearby orders if deliveryman is valid and active', async () => {
     const deliveryman = makeUser(
       {
         role: 'deliveryman',
-        status: 'inactive',
-        name: 'João Silva',
+        status: 'active',
       },
       new UniqueEntityID('deliveryman-1'),
     )
 
-    await inMemoryUsersRepository.create(admin)
+    const recipient1 = makeRecipient(
+      {
+        neighborhood: 'Barra da Tijuca',
+      },
+      new UniqueEntityID('recipient-1'),
+    )
+
+    const recipient2 = makeRecipient(
+      {
+        neighborhood: 'Copacabana',
+      },
+      new UniqueEntityID('recipient-2'),
+    )
+
+    const order1 = makeOrder(
+      {
+        recipientId: new UniqueEntityID('recipient-1'),
+      },
+      new UniqueEntityID('order-1'),
+    )
+
+    const order2 = makeOrder(
+      {
+        recipientId: new UniqueEntityID('recipient-1'),
+      },
+      new UniqueEntityID('order-2'),
+    )
+
+    const order3 = makeOrder(
+      {
+        recipientId: new UniqueEntityID('recipient-2'),
+      },
+      new UniqueEntityID('order-3'),
+    )
+
+    await inMemoryUsersRepository.create(deliveryman)
+    await inMemoryOrdersRepository.create({
+      ...order1,
+      recipient: recipient1,
+    } as Order & { recipient?: Recipient })
+    await inMemoryOrdersRepository.create({
+      ...order2,
+      recipient: recipient1,
+    } as Order & { recipient?: Recipient })
+    await inMemoryOrdersRepository.create({
+      ...order3,
+      recipient: recipient2,
+    } as Order & { recipient?: Recipient })
+
+    const result = await sut.execute({
+      deliverymanId: 'deliveryman-1',
+      neighborhood: 'Barra',
+    })
+
+    expect(result.isRight()).toBe(true)
+    expect(result.value).toBeInstanceOf(Array)
+    expect(result.value).toHaveLength(2)
+    expect(result.value).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: expect.objectContaining({ value: 'order-1' }),
+          recipientId: expect.objectContaining({ value: 'recipient-1' }),
+          recipient: expect.objectContaining({
+            id: expect.objectContaining({ value: 'recipient-1' }),
+            neighborhood: 'Barra da Tijuca',
+          }),
+        }),
+        expect.objectContaining({
+          id: expect.objectContaining({ value: 'order-2' }),
+          recipientId: expect.objectContaining({ value: 'recipient-1' }),
+          recipient: expect.objectContaining({
+            id: expect.objectContaining({ value: 'recipient-1' }),
+            neighborhood: 'Barra da Tijuca',
+          }),
+        }),
+      ]),
+    )
+    expect(await inMemoryOrdersRepository.findNearby('Barra')).toHaveLength(2)
+  })
+
+  it('should return an empty array if no orders match the neighborhood', async () => {
+    const deliveryman = makeUser(
+      {
+        role: 'deliveryman',
+        status: 'active',
+      },
+      new UniqueEntityID('deliveryman-1'),
+    )
+
     await inMemoryUsersRepository.create(deliveryman)
 
-    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
+    const result = await sut.execute({
+      deliverymanId: 'deliveryman-1',
+      neighborhood: 'NonExistent',
+    })
 
     expect(result.isRight()).toBe(true)
     expect(result.value).toBeInstanceOf(Array)
     expect(result.value).toEqual([])
     expect(result.value).toHaveLength(0)
     expect(
-      await inMemoryUsersRepository.findAllDeliverymen({ page: 1 }),
-    ).toHaveLength(1)
+      await inMemoryOrdersRepository.findNearby('NonExistent'),
+    ).toHaveLength(0)
   })
 
-  it('should return an error if admin does not exist', async () => {
-    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
+  it('should return an error if deliveryman does not exist', async () => {
+    const result = await sut.execute({
+      deliverymanId: 'deliveryman-1',
+      neighborhood: 'Barra',
+    })
 
     expect(result.isLeft()).toBe(true)
-    expect(result.value).toBeInstanceOf(OnlyActiveAdminsCanListDeliverymenError)
-    expect(result).toEqual(left(new OnlyActiveAdminsCanListDeliverymenError()))
-  })
-
-  it('should return an error if admin is not an admin', async () => {
-    const deliveryman = makeUser(
-      {
-        role: 'deliveryman',
-        status: 'active',
-      },
-      new UniqueEntityID('deliveryman-1'),
+    expect(result.value).toBeInstanceOf(
+      OnlyActiveDeliverymenCanListNearbyOrdersError,
     )
-
-    await inMemoryUsersRepository.create(deliveryman)
-
-    const result = await sut.execute({ adminId: 'deliveryman-1', page: 1 })
-
-    expect(result.isLeft()).toBe(true)
-    expect(result.value).toBeInstanceOf(OnlyActiveAdminsCanListDeliverymenError)
-    expect(result).toEqual(left(new OnlyActiveAdminsCanListDeliverymenError()))
+    expect(result).toEqual(
+      left(new OnlyActiveDeliverymenCanListNearbyOrdersError()),
+    )
   })
 
-  it('should return an error if admin is inactive', async () => {
+  it('should return an error if user is not a deliveryman', async () => {
     const admin = makeUser(
       {
         role: 'admin',
-        status: 'inactive',
+        status: 'active',
       },
       new UniqueEntityID('admin-1'),
     )
 
     await inMemoryUsersRepository.create(admin)
 
-    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
+    const result = await sut.execute({
+      deliverymanId: 'admin-1',
+      neighborhood: 'Barra',
+    })
 
     expect(result.isLeft()).toBe(true)
-    expect(result.value).toBeInstanceOf(OnlyActiveAdminsCanListDeliverymenError)
-    expect(result).toEqual(left(new OnlyActiveAdminsCanListDeliverymenError()))
+    expect(result.value).toBeInstanceOf(
+      OnlyActiveDeliverymenCanListNearbyOrdersError,
+    )
+    expect(result).toEqual(
+      left(new OnlyActiveDeliverymenCanListNearbyOrdersError()),
+    )
+  })
+
+  it('should return an error if deliveryman is inactive', async () => {
+    const deliveryman = makeUser(
+      {
+        role: 'deliveryman',
+        status: 'inactive',
+      },
+      new UniqueEntityID('deliveryman-1'),
+    )
+
+    await inMemoryUsersRepository.create(deliveryman)
+
+    const result = await sut.execute({
+      deliverymanId: 'deliveryman-1',
+      neighborhood: 'Barra',
+    })
+
+    expect(result.isLeft()).toBe(true)
+    expect(result.value).toBeInstanceOf(
+      OnlyActiveDeliverymenCanListNearbyOrdersError,
+    )
+    expect(result).toEqual(
+      left(new OnlyActiveDeliverymenCanListNearbyOrdersError()),
+    )
   })
 })

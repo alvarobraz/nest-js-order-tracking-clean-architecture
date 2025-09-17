@@ -4,12 +4,14 @@ import { UsersRepository } from '@/domain/order-control/application/repositories
 import { Either, left, right } from '@/core/either'
 import { OnlyActiveDeliverymenCanListNearbyOrdersError } from './errors/only-active-deliverymen-can-list-nearby-orders-error'
 import { OnlyActiveAdminsCanListDeliverymenError } from './errors/only-active-admins-can-list-deliverymen-error'
+import { Injectable } from '@nestjs/common'
 
 interface ListNearbyOrdersUseCaseRequest {
   deliverymanId: string
   neighborhood: string
 }
 
+@Injectable()
 export class ListNearbyOrdersUseCase {
   constructor(
     private ordersRepository: OrdersRepository,

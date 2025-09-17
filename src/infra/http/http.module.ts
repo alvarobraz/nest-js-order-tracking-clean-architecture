@@ -33,6 +33,8 @@ import { OrderByIdUseCase } from '@/domain/order-control/application/use-cases/o
 import { OrderByIdController } from './controllers/order-by-id.controller'
 import { DeleteOrderUseCase } from '@/domain/order-control/application/use-cases/delete-order'
 import { DeleteOrderController } from './controllers/delete-order.controller'
+import { ListNearbyOrdersUseCase } from '@/domain/order-control/application/use-cases/list-nearby-orders'
+import { ListNearbyOrdersController } from './controllers/list-nearby-orders.controller'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule],
@@ -51,6 +53,7 @@ import { DeleteOrderController } from './controllers/delete-order.controller'
     CreateOrderController,
     OrderByIdController,
     DeleteOrderController,
+    ListNearbyOrdersController,
   ],
   providers: [
     CreateDeliverymanUseCase,
@@ -67,6 +70,7 @@ import { DeleteOrderController } from './controllers/delete-order.controller'
     CreateOrderUseCase,
     OrderByIdUseCase,
     DeleteOrderUseCase,
+    ListNearbyOrdersUseCase,
     {
       provide: 'OrdersRepository',
       useClass: PrismaOrdersRepository,
