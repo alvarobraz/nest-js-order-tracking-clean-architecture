@@ -1,6 +1,8 @@
 import { PaginationParams } from '@/core/repositories/pagination-params'
 import { User } from '@/domain/order-control/enterprise/entities//user'
+import { Injectable } from '@nestjs/common'
 
+@Injectable()
 export abstract class UsersRepository {
   abstract create(user: User): Promise<void>
   abstract findById(id: string): Promise<User | null>

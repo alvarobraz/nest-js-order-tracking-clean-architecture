@@ -22,13 +22,23 @@ import { UpdateRecipientUseCase } from '@/domain/order-control/application/use-c
 import { UpdateRecipientController } from './controllers/update-recipient.controller'
 import { DeleteRecipientUseCase } from '@/domain/order-control/application/use-cases/delete-recipient'
 import { DeleteRecipientController } from './controllers/delete-recipient.controller'
+import { ListOrdersUseCase } from '@/domain/order-control/application/use-cases/list-orders'
+import { ListOrdersController } from './controllers/list-orders.controller'
+import { CreateOrderUseCase } from '@/domain/order-control/application/use-cases/create-order'
+// import { OrdersRepository } from '@/domain/order-control/application/repositories/orders-repository'
+// import { RecipientsRepository } from '@/domain/order-control/application/repositories/recipients-repository'
+import { PrismaOrdersRepository } from '../database/prisma/repositories/prisma-orders-repository'
+import { PrismaRecipientsRepository } from '../database/prisma/repositories/prisma-recipients-repository'
+import { OrderByIdUseCase } from '@/domain/order-control/application/use-cases/order-by-id'
+import { OrderByIdController } from './controllers/order-by-id.controller'
+import { DeleteOrderUseCase } from '@/domain/order-control/application/use-cases/delete-order'
+import { DeleteOrderController } from './controllers/delete-order.controller'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule],
   controllers: [
     CreateAccountController,
     AuthenticateController,
-    CreateOrderController,
     CreateRecipientController,
     FetchRecentQuestionsController,
     UpdateDeliverymanController,
@@ -37,6 +47,10 @@ import { DeleteRecipientController } from './controllers/delete-recipient.contro
     ListRecipientsController,
     UpdateRecipientController,
     DeleteRecipientController,
+    ListOrdersController,
+    CreateOrderController,
+    OrderByIdController,
+    DeleteOrderController,
   ],
   providers: [
     CreateDeliverymanUseCase,
@@ -49,6 +63,21 @@ import { DeleteRecipientController } from './controllers/delete-recipient.contro
     ListRecipientsUseCase,
     UpdateRecipientUseCase,
     DeleteRecipientUseCase,
+    ListOrdersUseCase,
+    CreateOrderUseCase,
+    OrderByIdUseCase,
+    DeleteOrderUseCase,
+    {
+      provide: 'OrdersRepository',
+      useClass: PrismaOrdersRepository,
+    },
+    {
+      provide: 'RecipientsRepository',
+      useClass: PrismaRecipientsRepository,
+    },
+  ],
+  exports: [
+    CreateOrderUseCase, // se precisar usar em outro módulo
   ],
 })
 export class HttpModule {}

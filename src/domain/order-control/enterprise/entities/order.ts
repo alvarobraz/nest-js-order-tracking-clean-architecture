@@ -7,18 +7,12 @@ import { OrderPickedUpEvent } from '../events/order-picked-up-event'
 import { OrderDeliveredEvent } from '../events/order-delivered-event'
 
 export interface OrderProps {
-  recipientId?: UniqueEntityID
+  recipientId: UniqueEntityID
   deliverymanId?: UniqueEntityID
   status: 'pending' | 'picked_up' | 'delivered' | 'returned'
-  street: string
-  number: string
-  neighborhood: string
-  city: string
-  state: string
-  zipCode: string
   deliveryPhoto: OrderAttachmentList
   createdAt: Date
-  updatedAt?: Date
+  updatedAt?: Date | null
 }
 
 export class Order extends AggregateRoot<OrderProps> {
@@ -32,30 +26,6 @@ export class Order extends AggregateRoot<OrderProps> {
 
   get status() {
     return this.props.status
-  }
-
-  get street() {
-    return this.props.street
-  }
-
-  get number() {
-    return this.props.number
-  }
-
-  get neighborhood() {
-    return this.props.neighborhood
-  }
-
-  get city() {
-    return this.props.city
-  }
-
-  get state() {
-    return this.props.state
-  }
-
-  get zipCode() {
-    return this.props.zipCode
   }
 
   get deliveryPhoto() {
@@ -74,7 +44,7 @@ export class Order extends AggregateRoot<OrderProps> {
     this.props.updatedAt = new Date()
   }
 
-  set recipientId(recipientId: UniqueEntityID | undefined) {
+  set recipientId(recipientId: UniqueEntityID) {
     this.props.recipientId = recipientId
     this.touch()
   }
@@ -95,36 +65,6 @@ export class Order extends AggregateRoot<OrderProps> {
     this.touch()
   }
 
-  set street(street: string) {
-    this.props.street = street
-    this.touch()
-  }
-
-  set number(number: string) {
-    this.props.number = number
-    this.touch()
-  }
-
-  set neighborhood(neighborhood: string) {
-    this.props.neighborhood = neighborhood
-    this.touch()
-  }
-
-  set city(city: string) {
-    this.props.city = city
-    this.touch()
-  }
-
-  set state(state: string) {
-    this.props.state = state
-    this.touch()
-  }
-
-  set zipCode(zipCode: string) {
-    this.props.zipCode = zipCode
-    this.touch()
-  }
-
   set deliveryPhoto(deliveryPhoto: OrderAttachmentList) {
     this.props.deliveryPhoto = deliveryPhoto
     this.touch()
@@ -133,11 +73,7 @@ export class Order extends AggregateRoot<OrderProps> {
   static create(
     props: Optional<
       OrderProps,
-      | 'createdAt'
-      | 'updatedAt'
-      | 'recipientId'
-      | 'deliverymanId'
-      | 'deliveryPhoto'
+      'createdAt' | 'updatedAt' | 'deliverymanId' | 'deliveryPhoto'
     >,
     id?: UniqueEntityID,
   ) {

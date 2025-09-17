@@ -1,16 +1,10 @@
-import {
-  Body,
-  Controller,
-  Post,
-  UnauthorizedException,
-  UseGuards,
-} from '@nestjs/common'
+import { Body, Controller, Post, UseGuards } from '@nestjs/common'
 import { CurrentUser } from '@/infra/auth/current-user-decorator'
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 import type { UserPayload } from '@/infra/auth/jwt.strategy'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validation-pipe'
-import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import z from 'zod'
+import { CreateOrderUseCase } from '@/domain/order-control/application/use-cases/create-order'
 
 const createOrderBodySchema = z.object({
   recipientId: z.string(),
@@ -23,7 +17,7 @@ type CreateOrderBodySchema = z.infer<typeof createOrderBodySchema>
 @Controller('/orders')
 @UseGuards(JwtAuthGuard)
 export class CreateOrderController {
-  constructor(private prisma: PrismaService) {}
+  constructor(private createOrder: CreateOrderUseCase) {}
 
   @Post()
   async handle(
@@ -33,31 +27,29 @@ export class CreateOrderController {
     const { recipientId } = body
     const adminId = user.sub
 
-    const admin = await this.prisma.user.findUnique({
-      where: {
-        id: adminId,
-      },
-    })
+    // const admin = await this.prisma.user.findUnique({
+    //   where: {
+    //     id: adminId,
+    //   },
+    // })
 
-    if (!admin || admin.role !== 'admin' || admin.status !== 'active') {
-      throw new UnauthorizedException('Only active admins can create orders.')
-    }
+    // if (!admin || admin.role !== 'admin' || admin.status !== 'active') {
+    //   throw new UnauthorizedException('Only active admins can create orders.')
+    // }
 
-    const recipient = await this.prisma.recipient.findUnique({
-      where: {
-        id: recipientId,
-      },
-    })
+    // const recipient = await this.prisma.recipient.findUnique({
+    //   where: {
+    //     id: recipientId,
+    //   },
+    // })
 
-    if (!recipient) {
-      throw new UnauthorizedException('Not Found recipient.')
-    }
+    // if (!recipient) {
+    //   throw new UnauthorizedException('Not Found recipient.')
+    // }
 
-    await this.prisma.order.create({
-      data: {
-        id: adminId,
-        recipientId,
-      },
+    await this.createOrder.execute({
+      adminId,
+      recipientId,
     })
   }
 }
