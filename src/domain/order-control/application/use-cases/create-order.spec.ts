@@ -24,6 +24,7 @@ describe('Create Order Use Case', () => {
     sut = new CreateOrderUseCase(
       inMemoryOrdersRepository,
       inMemoryUsersRepository,
+      inMemoryRecipientsRepository,
     )
   })
 
@@ -46,19 +47,13 @@ describe('Create Order Use Case', () => {
     await inMemoryUsersRepository.create(admin)
     await inMemoryRecipientsRepository.create(recipient)
 
-    const orderProps = makeOrder({
+    makeOrder({
       recipientId: new UniqueEntityID('recipient-1'),
     })
 
     const result = await sut.execute({
       adminId: 'admin-1',
       recipientId: 'recipient-1',
-      street: orderProps.street,
-      number: orderProps.number,
-      neighborhood: orderProps.neighborhood,
-      city: orderProps.city,
-      state: orderProps.state,
-      zipCode: orderProps.zipCode,
     })
 
     expect(result.isRight()).toBe(true)
@@ -67,12 +62,6 @@ describe('Create Order Use Case', () => {
     })
     const order = (result.value as { order: Order }).order
     expect(order.status).toBe('pending')
-    expect(order.street).toBe(orderProps.street)
-    expect(order.number).toBe(orderProps.number)
-    expect(order.neighborhood).toBe(orderProps.neighborhood)
-    expect(order.city).toBe(orderProps.city)
-    expect(order.state).toBe(orderProps.state)
-    expect(order.zipCode).toBe(orderProps.zipCode)
     expect(order.recipientId).toBeDefined()
     expect(order.recipientId?.toString()).toBe('recipient-1')
     expect(inMemoryOrdersRepository.items).toHaveLength(1)
@@ -92,19 +81,13 @@ describe('Create Order Use Case', () => {
 
     await inMemoryRecipientsRepository.create(recipient)
 
-    const orderProps = makeOrder({
+    makeOrder({
       recipientId: new UniqueEntityID('recipient-1'),
     })
 
     const result = await sut.execute({
       adminId: 'admin-1',
       recipientId: 'recipient-1',
-      street: orderProps.street,
-      number: orderProps.number,
-      neighborhood: orderProps.neighborhood,
-      city: orderProps.city,
-      state: orderProps.state,
-      zipCode: orderProps.zipCode,
     })
 
     expect(result.isLeft()).toBe(true)
@@ -131,19 +114,13 @@ describe('Create Order Use Case', () => {
     await inMemoryUsersRepository.create(deliveryman)
     await inMemoryRecipientsRepository.create(recipient)
 
-    const orderProps = makeOrder({
+    makeOrder({
       recipientId: new UniqueEntityID('recipient-1'),
     })
 
     const result = await sut.execute({
       adminId: 'deliveryman-1',
       recipientId: 'recipient-1',
-      street: orderProps.street,
-      number: orderProps.number,
-      neighborhood: orderProps.neighborhood,
-      city: orderProps.city,
-      state: orderProps.state,
-      zipCode: orderProps.zipCode,
     })
 
     expect(result.isLeft()).toBe(true)
@@ -170,19 +147,13 @@ describe('Create Order Use Case', () => {
     await inMemoryUsersRepository.create(admin)
     await inMemoryRecipientsRepository.create(recipient)
 
-    const orderProps = makeOrder({
+    makeOrder({
       recipientId: new UniqueEntityID('recipient-1'),
     })
 
     const result = await sut.execute({
       adminId: 'admin-1',
       recipientId: 'recipient-1',
-      street: orderProps.street,
-      number: orderProps.number,
-      neighborhood: orderProps.neighborhood,
-      city: orderProps.city,
-      state: orderProps.state,
-      zipCode: orderProps.zipCode,
     })
 
     expect(result.isLeft()).toBe(true)

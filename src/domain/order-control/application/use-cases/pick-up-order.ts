@@ -1,23 +1,39 @@
 import { OrdersRepository } from '@/domain/order-control/application/repositories/orders-repository'
 import { UsersRepository } from '@/domain/order-control/application/repositories/users-repository'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
-import { left } from '@/core/either'
+import { Either, left, right } from '@/core/either'
 import { OrderNotFoundError } from './errors/order-not-found-error'
 import { OnlyActiveDeliverymenCanPickUpOrdersError } from './errors/only-active-deliverymen-can-pick-up-orders-error'
 import { OrderMustBePendingToBePickedUpError } from './errors/order-must-be-pending-to-be-picked-up-error'
+import { Injectable } from '@nestjs/common'
+import { Order } from '../../enterprise/entities/order'
+import { Recipient } from '../../enterprise/entities/recipient'
 
 interface PickUpOrderUseCaseRequest {
   deliverymanId: string
   orderId: string
 }
 
+type PickUpOrderUseCaseResponse = Either<
+  | OnlyActiveDeliverymenCanPickUpOrdersError
+  | OrderNotFoundError
+  | OrderMustBePendingToBePickedUpError,
+  {
+    order: Order & { recipient?: Recipient }
+  }
+>
+
+@Injectable()
 export class PickUpOrderUseCase {
   constructor(
     private ordersRepository: OrdersRepository,
     private usersRepository: UsersRepository,
   ) {}
 
-  async execute({ deliverymanId, orderId }: PickUpOrderUseCaseRequest) {
+  async execute({
+    deliverymanId,
+    orderId,
+  }: PickUpOrderUseCaseRequest): Promise<PickUpOrderUseCaseResponse> {
     const deliveryman = await this.usersRepository.findById(deliverymanId)
     if (
       !deliveryman ||
@@ -41,6 +57,6 @@ export class PickUpOrderUseCase {
 
     await this.ordersRepository.save(order)
 
-    return order
+    return right({ order })
   }
 }

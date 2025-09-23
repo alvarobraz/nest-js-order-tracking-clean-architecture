@@ -27,26 +27,6 @@ export class CreateOrderController {
     const { recipientId } = body
     const adminId = user.sub
 
-    // const admin = await this.prisma.user.findUnique({
-    //   where: {
-    //     id: adminId,
-    //   },
-    // })
-
-    // if (!admin || admin.role !== 'admin' || admin.status !== 'active') {
-    //   throw new UnauthorizedException('Only active admins can create orders.')
-    // }
-
-    // const recipient = await this.prisma.recipient.findUnique({
-    //   where: {
-    //     id: recipientId,
-    //   },
-    // })
-
-    // if (!recipient) {
-    //   throw new UnauthorizedException('Not Found recipient.')
-    // }
-
     await this.createOrder.execute({
       adminId,
       recipientId,
