@@ -46,12 +46,6 @@ describe('Mark Order As Delivered', () => {
         recipientId: new UniqueEntityID('recipient-1'),
         deliverymanId: new UniqueEntityID('deliveryman-1'),
         status: 'picked_up',
-        street: 'Rua das Flores',
-        number: '123',
-        neighborhood: 'Centro',
-        city: 'Curitiba',
-        state: 'PR',
-        zipCode: '80010-000',
         deliveryPhoto: new OrderAttachmentList(),
       },
       new UniqueEntityID('order-1'),
@@ -67,40 +61,16 @@ describe('Mark Order As Delivered', () => {
     })
 
     expect(result.isRight()).toBe(true)
-    expect(result.value).toEqual({
-      order: expect.objectContaining({
-        id: new UniqueEntityID('order-1'),
-        deliverymanId: new UniqueEntityID('deliveryman-1'),
-        status: 'delivered',
-        deliveryPhoto: expect.any(OrderAttachmentList),
-      }),
-    })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.value as any).order.deliveryPhoto.currentItems).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          orderId: expect.objectContaining({ value: 'order-1' }),
-          attachmentId: expect.objectContaining({ value: 'photo-1' }),
-        }),
-        expect.objectContaining({
-          orderId: expect.objectContaining({ value: 'order-1' }),
-          attachmentId: expect.objectContaining({ value: 'photo-2' }),
-        }),
-      ]),
-    )
-    expect(await inMemoryOrdersRepository.findById('order-1')).toEqual(
-      expect.objectContaining({
-        id: new UniqueEntityID('order-1'),
-        status: 'delivered',
-        street: 'Rua das Flores',
-        number: '123',
-        deliveryPhoto: expect.any(OrderAttachmentList),
-      }),
-    )
+    const savedOrder = await inMemoryOrdersRepository.findById('order-1')
+
+    expect(savedOrder).toBeDefined()
+    expect(savedOrder?.status).toBe('delivered')
     expect(
-      (await inMemoryOrdersRepository.findById('order-1'))!.deliveryPhoto
-        .currentItems,
-    ).toEqual(
+      savedOrder?.deliverymanId.equals(new UniqueEntityID('deliveryman-1')),
+    ).toBeTruthy()
+
+    expect(savedOrder?.deliveryPhoto).toBeInstanceOf(OrderAttachmentList)
+    expect(savedOrder?.deliveryPhoto.currentItems).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           orderId: expect.objectContaining({ value: 'order-1' }),
@@ -120,12 +90,6 @@ describe('Mark Order As Delivered', () => {
         recipientId: new UniqueEntityID('recipient-1'),
         deliverymanId: new UniqueEntityID('deliveryman-1'),
         status: 'picked_up',
-        street: 'Rua das Flores',
-        number: '123',
-        neighborhood: 'Centro',
-        city: 'Curitiba',
-        state: 'PR',
-        zipCode: '80010-000',
         deliveryPhoto: new OrderAttachmentList(),
       },
       new UniqueEntityID('order-1'),
@@ -168,12 +132,6 @@ describe('Mark Order As Delivered', () => {
         recipientId: new UniqueEntityID('recipient-1'),
         deliverymanId: new UniqueEntityID('deliveryman-1'),
         status: 'picked_up',
-        street: 'Rua das Flores',
-        number: '123',
-        neighborhood: 'Centro',
-        city: 'Curitiba',
-        state: 'PR',
-        zipCode: '80010-000',
         deliveryPhoto: new OrderAttachmentList(),
       },
       new UniqueEntityID('order-1'),
@@ -220,12 +178,6 @@ describe('Mark Order As Delivered', () => {
         recipientId: new UniqueEntityID('recipient-1'),
         deliverymanId: new UniqueEntityID('deliveryman-1'),
         status: 'picked_up',
-        street: 'Rua das Flores',
-        number: '123',
-        neighborhood: 'Centro',
-        city: 'Curitiba',
-        state: 'PR',
-        zipCode: '80010-000',
         deliveryPhoto: new OrderAttachmentList(),
       },
       new UniqueEntityID('order-1'),
@@ -273,12 +225,6 @@ describe('Mark Order As Delivered', () => {
         recipientId: new UniqueEntityID('recipient-1'),
         deliverymanId: new UniqueEntityID('deliveryman-1'),
         status: 'picked_up',
-        street: 'Rua das Flores',
-        number: '123',
-        neighborhood: 'Centro',
-        city: 'Curitiba',
-        state: 'PR',
-        zipCode: '80010-000',
         deliveryPhoto: new OrderAttachmentList(),
       },
       new UniqueEntityID('order-1'),
@@ -352,12 +298,6 @@ describe('Mark Order As Delivered', () => {
         recipientId: new UniqueEntityID('recipient-1'),
         deliverymanId: new UniqueEntityID('deliveryman-2'),
         status: 'picked_up',
-        street: 'Rua das Flores',
-        number: '123',
-        neighborhood: 'Centro',
-        city: 'Curitiba',
-        state: 'PR',
-        zipCode: '80010-000',
         deliveryPhoto: new OrderAttachmentList(),
       },
       new UniqueEntityID('order-1'),
@@ -405,12 +345,6 @@ describe('Mark Order As Delivered', () => {
         recipientId: new UniqueEntityID('recipient-1'),
         deliverymanId: new UniqueEntityID('deliveryman-1'),
         status: 'pending',
-        street: 'Rua das Flores',
-        number: '123',
-        neighborhood: 'Centro',
-        city: 'Curitiba',
-        state: 'PR',
-        zipCode: '80010-000',
         deliveryPhoto: new OrderAttachmentList(),
       },
       new UniqueEntityID('order-1'),
@@ -458,12 +392,6 @@ describe('Mark Order As Delivered', () => {
         recipientId: new UniqueEntityID('recipient-1'),
         deliverymanId: new UniqueEntityID('deliveryman-1'),
         status: 'picked_up',
-        street: 'Rua das Flores',
-        number: '123',
-        neighborhood: 'Centro',
-        city: 'Curitiba',
-        state: 'PR',
-        zipCode: '80010-000',
         deliveryPhoto: new OrderAttachmentList(),
       },
       new UniqueEntityID('order-1'),

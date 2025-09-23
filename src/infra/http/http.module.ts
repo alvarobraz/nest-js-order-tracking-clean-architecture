@@ -37,9 +37,12 @@ import { ListNearbyOrdersUseCase } from '@/domain/order-control/application/use-
 import { ListNearbyOrdersController } from './controllers/list-nearby-orders.controller'
 import { PickUpOrderUseCase } from '@/domain/order-control/application/use-cases/pick-up-order'
 import { PickUpOrderController } from './controllers/pick-up-order.controller'
+import { UploadAttachmentController } from './controllers/upload-attachment.controller'
+import { StorageModule } from '../storage/storage.module'
+import { UploadAndCreateAttachmentUseCase } from '@/domain/order-control/application/use-cases/upload-and-create-attachment'
 
 @Module({
-  imports: [DatabaseModule, CryptographyModule],
+  imports: [DatabaseModule, CryptographyModule, StorageModule],
   controllers: [
     CreateAccountController,
     AuthenticateController,
@@ -57,6 +60,7 @@ import { PickUpOrderController } from './controllers/pick-up-order.controller'
     DeleteOrderController,
     ListNearbyOrdersController,
     PickUpOrderController,
+    UploadAttachmentController,
   ],
   providers: [
     CreateDeliverymanUseCase,
@@ -83,9 +87,8 @@ import { PickUpOrderController } from './controllers/pick-up-order.controller'
       provide: 'RecipientsRepository',
       useClass: PrismaRecipientsRepository,
     },
+    UploadAndCreateAttachmentUseCase,
   ],
-  exports: [
-    CreateOrderUseCase, // se precisar usar em outro módulo
-  ],
+  exports: [CreateOrderUseCase],
 })
 export class HttpModule {}

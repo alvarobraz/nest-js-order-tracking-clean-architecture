@@ -72,9 +72,9 @@ model Order {
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime?   @updatedAt @map("updated_at")
 
-  recipient   Recipient         @relation("RecipientOrders", fields: [recipientId], references: [id])
-  deliveryman User?             @relation("DeliverymanOrders", fields: [deliverymanId], references: [id])
-  attachments OrderAttachment[] @relation("OrderAttachments")
+  recipient   Recipient    @relation("RecipientOrders", fields: [recipientId], references: [id])
+  deliveryman User?        @relation("DeliverymanOrders", fields: [deliverymanId], references: [id])
+  attachments Attachment[]
 
   @@map("orders")
 }
@@ -92,12 +92,13 @@ model Notification {
   @@map("notifications")
 }
 
-model OrderAttachment {
-  id           String @id @default(uuid())
-  orderId      String @map("order_id")
-  attachmentId String @map("attachment_id")
+model Attachment {
+  id      String  @id @default(uuid())
+  title   String
+  url     String
+  orderId String? @map("order_id")
 
-  order Order @relation("OrderAttachments", fields: [orderId], references: [id])
+  order Order? @relation(fields: [orderId], references: [id])
 
-  @@map("order_attachments")
+  @@map("attachments")
 }
