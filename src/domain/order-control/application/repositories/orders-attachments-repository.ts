@@ -1,5 +1,10 @@
+import { Injectable } from '@nestjs/common'
 import { OrderAttachment } from '../../enterprise/entities/order-attachment'
 
-export interface OrderAttachmentsRepository {
-  findManyByOrderId(orderId: string): Promise<OrderAttachment[]>
+@Injectable()
+export abstract class OrderAttachmentsRepository {
+  abstract createMany(attachments: OrderAttachment[]): Promise<void>
+  abstract deleteMany(attachments: OrderAttachment[]): Promise<void>
+
+  abstract findManyByOrderId(orderId: string): Promise<OrderAttachment[]>
 }

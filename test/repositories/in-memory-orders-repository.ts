@@ -3,12 +3,20 @@ import { OrdersRepository } from '@/domain/order-control/application/repositorie
 import { DomainEvents } from '@/core/events/domain-events'
 import { Recipient } from '@/domain/order-control/enterprise/entities/recipient'
 import { PaginationParams } from '@/core/repositories/pagination-params'
+import { OrderAttachmentsRepository } from '@/domain/order-control/application/repositories/orders-attachments-repository'
 
 export class InMemoryOrdersRepository implements OrdersRepository {
   public items: (Order & { recipient?: Recipient })[] = []
 
+  constructor(private orderAttachmentsRepository: OrderAttachmentsRepository) {}
+
   async create(order: Order & { recipient?: Recipient }): Promise<void> {
     this.items.push(order)
+
+    await this.orderAttachmentsRepository.createMany(
+      order.deliveryPhoto.getItems(),
+    )
+
     DomainEvents.dispatchEventsForAggregate(order.id)
   }
 
@@ -28,6 +36,15 @@ export class InMemoryOrdersRepository implements OrdersRepository {
     if (index >= 0) {
       this.items[index] = order
     }
+
+    await this.orderAttachmentsRepository.createMany(
+      order.deliveryPhoto.getNewItems(),
+    )
+
+    await this.orderAttachmentsRepository.deleteMany(
+      order.deliveryPhoto.getRemovedItems(),
+    )
+
     DomainEvents.dispatchEventsForAggregate(order.id)
     return order
   }

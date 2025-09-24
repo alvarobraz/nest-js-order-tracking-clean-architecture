@@ -11,6 +11,7 @@ import { OrderAttachment } from '../../enterprise/entities/order-attachment'
 import { OrderAttachmentList } from '@/domain/order-control/enterprise/entities/order-attachment-list'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { OrderAttachmentsRepository } from '../repositories/orders-attachments-repository'
+import { Injectable } from '@nestjs/common'
 
 interface MarkOrderAsDeliveredUseCaseRequest {
   deliverymanId: string
@@ -27,6 +28,7 @@ type MarkOrderAsDeliveredUseCaseResponse = Either<
   { order: Order }
 >
 
+@Injectable()
 export class MarkOrderAsDeliveredUseCase {
   constructor(
     private ordersRepository: OrdersRepository,

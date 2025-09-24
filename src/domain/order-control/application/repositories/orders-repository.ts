@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common'
 export abstract class OrdersRepository {
   abstract create(order: Order): Promise<void>
   abstract findById(id: string): Promise<Order | null>
-  abstract save(order: Order): Promise<Order>
+  abstract save(order: Order): Promise<void>
   abstract delete(id: string): Promise<void>
   abstract findAll(params: PaginationParams): Promise<Order[]>
   abstract findNearby(neighborhood: string): Promise<Order[]>

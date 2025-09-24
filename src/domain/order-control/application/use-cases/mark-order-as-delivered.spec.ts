@@ -21,7 +21,12 @@ let sut: MarkOrderAsDeliveredUseCase
 
 describe('Mark Order As Delivered', () => {
   beforeEach(() => {
-    inMemoryOrdersRepository = new InMemoryOrdersRepository()
+    inMemoryOrderAttachmentsRepository =
+      new InMemoryOrderAttachmentsRepository()
+    inMemoryOrdersRepository = new InMemoryOrdersRepository(
+      (inMemoryOrderAttachmentsRepository =
+        new InMemoryOrderAttachmentsRepository()),
+    )
     inMemoryUsersRepository = new InMemoryUsersRepository()
     inMemoryOrderAttachmentsRepository =
       new InMemoryOrderAttachmentsRepository()

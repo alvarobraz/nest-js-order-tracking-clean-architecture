@@ -22,6 +22,10 @@ export class OrderPresenter {
         : null,
       deliverymanId: order.deliverymanId?.toString(),
       status: order.status,
+      deliveryPhoto: order.deliveryPhoto.currentItems.map((attachment) => ({
+        id: attachment.attachmentId.toString(),
+        orderId: attachment.orderId.toString(),
+      })),
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     }

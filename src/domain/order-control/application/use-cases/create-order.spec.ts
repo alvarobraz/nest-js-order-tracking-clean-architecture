@@ -10,15 +10,21 @@ import { makeRecipient } from 'test/factories/make-recipient'
 import { Order } from '@/domain/order-control/enterprise/entities/order'
 import { left } from '@/core/either'
 import { OnlyActiveAdminsCanCreateOrdersError } from './errors/only-active-admins-can-create-orders-error'
+import { InMemoryOrderAttachmentsRepository } from 'test/repositories/in-memory-order-attachments-repository'
 
 let inMemoryOrdersRepository: InMemoryOrdersRepository
 let inMemoryUsersRepository: InMemoryUsersRepository
 let inMemoryRecipientsRepository: InMemoryRecipientsRepository
+let inMemoryOrderAttachmentsRepository: InMemoryOrderAttachmentsRepository
 let sut: CreateOrderUseCase
 
 describe('Create Order Use Case', () => {
   beforeEach(() => {
-    inMemoryOrdersRepository = new InMemoryOrdersRepository()
+    inMemoryOrderAttachmentsRepository =
+      new InMemoryOrderAttachmentsRepository()
+    inMemoryOrdersRepository = new InMemoryOrdersRepository(
+      inMemoryOrderAttachmentsRepository,
+    )
     inMemoryUsersRepository = new InMemoryUsersRepository()
     inMemoryRecipientsRepository = new InMemoryRecipientsRepository()
     sut = new CreateOrderUseCase(

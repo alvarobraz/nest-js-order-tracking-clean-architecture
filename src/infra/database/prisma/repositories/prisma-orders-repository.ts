@@ -5,10 +5,14 @@ import { PaginationParams } from '@/core/repositories/pagination-params'
 import { Injectable } from '@nestjs/common'
 import { OrdersRepository } from '@/domain/order-control/application/repositories/orders-repository'
 import { Recipient } from '@/domain/order-control/enterprise/entities/recipient'
+import { OrderAttachmentsRepository } from '@/domain/order-control/application/repositories/orders-attachments-repository'
 
 @Injectable()
 export class PrismaOrdersRepository implements OrdersRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private orderAttachmentsRepository: OrderAttachmentsRepository,
+  ) {}
 
   async create(orders: Order): Promise<void> {
     const data = PrismaOrdersMapper.toPrisma(orders)
@@ -16,6 +20,10 @@ export class PrismaOrdersRepository implements OrdersRepository {
     await this.prisma.order.create({
       data,
     })
+
+    await this.orderAttachmentsRepository.createMany(
+      orders.deliveryPhoto.getItems(),
+    )
   }
 
   async findById(id: string): Promise<Order | null> {
@@ -23,7 +31,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
       where: {
         id,
       },
-      include: { recipient: true },
+      include: { recipient: true, attachments: true },
     })
 
     if (!orders) {
@@ -33,19 +41,33 @@ export class PrismaOrdersRepository implements OrdersRepository {
     return PrismaOrdersMapper.toDomain(orders)
   }
 
-  async save(order: Order): Promise<Order> {
+  async save(order: Order): Promise<void> {
     const data = PrismaOrdersMapper.toPrisma(order)
 
-    const updatedOrder = await this.prisma.order.update({
-      where: {
-        id: order.id.toString(),
-      },
-      data,
-      include: { attachments: true }, // Incluir anexos, se necessário
-    })
+    // const updatedOrder = await this.prisma.order.update({
+    //   where: {
+    //     id: order.id.toString(),
+    //   },
+    //   data,
+    //   include: { attachments: true }, // Incluir anexos, se necessário
+    // })
 
-    const domainOrder = PrismaOrdersMapper.toDomain(updatedOrder)
-    return domainOrder
+    // const domainOrder = PrismaOrdersMapper.toDomain(updatedOrder)
+    // return domainOrder
+    await Promise.all([
+      this.prisma.order.update({
+        where: {
+          id: order.id.toString(),
+        },
+        data,
+      }),
+      this.orderAttachmentsRepository.createMany(
+        order.deliveryPhoto.getNewItems(),
+      ),
+      this.orderAttachmentsRepository.deleteMany(
+        order.deliveryPhoto.getRemovedItems(),
+      ),
+    ])
   }
 
   async delete(id: string): Promise<void> {
