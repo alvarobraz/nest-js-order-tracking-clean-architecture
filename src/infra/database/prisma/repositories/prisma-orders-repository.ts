@@ -116,6 +116,7 @@ export class PrismaOrdersRepository implements OrdersRepository {
       where: {
         deliverymanId,
       },
+      include: { recipient: true, attachments: true },
     })
     return orders.map(PrismaOrdersMapper.toDomain)
   }

@@ -6,7 +6,8 @@ import { Order } from '@/domain/order-control/enterprise/entities/order'
 import { UserNotFoundError } from './errors/user-not-found-error'
 import { OnlyActiveAdminsCanListDeliverymenError } from './errors/only-active-admins-can-list-deliverymen-error'
 import { UserNotDeliverymanError } from './errors/user-not-deliveryman-error'
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
+import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 
 interface ListUserDeliveriesUseCaseRequest {
   adminId: string
@@ -23,7 +24,7 @@ type ListUserDeliveriesUseCaseResponse = Either<
 @Injectable()
 export class ListUserDeliveriesUseCase {
   constructor(
-    private ordersRepository: OrdersRepository,
+    @Inject('OrdersRepository') private ordersRepository: OrdersRepository,
     private usersRepository: UsersRepository,
   ) {}
 
@@ -31,21 +32,39 @@ export class ListUserDeliveriesUseCase {
     adminId,
     userId,
   }: ListUserDeliveriesUseCaseRequest): Promise<ListUserDeliveriesUseCaseResponse> {
-    const admin = await this.usersRepository.findById(adminId)
-    if (!admin || admin.role !== 'admin' || admin.status !== 'active') {
-      return left(new OnlyActiveAdminsCanListDeliverymenError())
-    }
-
-    const deliveryman = await this.usersRepository.findById(userId)
-    if (!deliveryman) {
+    const requester = await this.usersRepository.findById(adminId)
+    if (!requester) {
       return left(new UserNotFoundError())
     }
 
-    if (deliveryman.role !== 'deliveryman') {
-      return left(new UserNotDeliverymanError())
+    if (requester.role === 'admin' && requester.status === 'active') {
+      const deliveryman = await this.usersRepository.findById(userId)
+      if (!deliveryman) {
+        return left(new UserNotFoundError())
+      }
+
+      if (deliveryman.role !== 'deliveryman') {
+        return left(new UserNotDeliverymanError())
+      }
+
+      const deliveries = await this.ordersRepository.findByDeliverymanId(userId)
+      const deliveredOrders = deliveries.filter(
+        (order) => order.status === 'delivered',
+      )
+      return right(deliveredOrders)
     }
 
-    const deliveries = await this.ordersRepository.findByDeliverymanId(userId)
-    return right(deliveries)
+    if (
+      requester.role === 'deliveryman' &&
+      requester.id.equals(new UniqueEntityID(userId))
+    ) {
+      const deliveries = await this.ordersRepository.findByDeliverymanId(userId)
+      const deliveredOrders = deliveries.filter(
+        (order) => order.status === 'delivered',
+      )
+      return right(deliveredOrders)
+    }
+
+    return left(new OnlyActiveAdminsCanListDeliverymenError())
   }
 }

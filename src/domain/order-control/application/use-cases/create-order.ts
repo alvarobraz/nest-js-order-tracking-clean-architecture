@@ -24,7 +24,8 @@ type CreateOrderUseCaseResponse = Either<
 @Injectable()
 export class CreateOrderUseCase {
   constructor(
-    @Inject('OrdersRepository') private ordersRepository: OrdersRepository,
+    @Inject('OrdersRepository')
+    private ordersRepository: OrdersRepository,
     private usersRepository: UsersRepository,
     @Inject('RecipientsRepository')
     private recipientsRepository: RecipientsRepository,

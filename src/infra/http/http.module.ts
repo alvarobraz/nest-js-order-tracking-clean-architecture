@@ -44,6 +44,8 @@ import { MarkOrderAsDeliveredUseCase } from '@/domain/order-control/application/
 import { MarkOrderAsDeliveredController } from './controllers/mark-order-as-delivered.controller'
 import { MarkOrderAsReturnedUseCase } from '@/domain/order-control/application/use-cases/mark-order-as-returned'
 import { MarkOrderAsReturnedController } from './controllers/mark-order-as-returned.controller'
+import { ListUserDeliveriesController } from './controllers/list-user-deliveries.controller'
+import { ListUserDeliveriesUseCase } from '@/domain/order-control/application/use-cases/list-user-deliveries'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule, StorageModule],
@@ -67,6 +69,7 @@ import { MarkOrderAsReturnedController } from './controllers/mark-order-as-retur
     UploadAttachmentController,
     MarkOrderAsDeliveredController,
     MarkOrderAsReturnedController,
+    ListUserDeliveriesController,
   ],
   providers: [
     CreateDeliverymanUseCase,
@@ -87,6 +90,7 @@ import { MarkOrderAsReturnedController } from './controllers/mark-order-as-retur
     PickUpOrderUseCase,
     MarkOrderAsDeliveredUseCase,
     MarkOrderAsReturnedUseCase,
+    ListUserDeliveriesUseCase,
     {
       provide: 'OrdersRepository',
       useClass: PrismaOrdersRepository,

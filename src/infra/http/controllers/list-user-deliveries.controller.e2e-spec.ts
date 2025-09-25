@@ -7,7 +7,7 @@ import { JwtService } from '@nestjs/jwt'
 import { hash } from 'bcryptjs'
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 
-describe('List Orders Controller (e2e)', () => {
+describe('List User Deliveries Controller (e2e)', () => {
   let app: INestApplication
   let prisma: PrismaService
   let jwtService: JwtService
@@ -42,7 +42,6 @@ describe('List Orders Controller (e2e)', () => {
   async function seedAdminAndOrders() {
     const admin = await prisma.user.create({
       data: {
-        id: 'admin-1',
         name: 'Admin User',
         cpf: '12345678901',
         password: await hash('password', 8),
@@ -53,9 +52,20 @@ describe('List Orders Controller (e2e)', () => {
       },
     })
 
+    const deliveryman = await prisma.user.create({
+      data: {
+        name: 'Deliveryman User',
+        cpf: '98765432100',
+        password: await hash('password', 8),
+        role: 'deliveryman',
+        email: 'deliveryman@example.com',
+        phone: '11987654324',
+        status: 'active',
+      },
+    })
+
     const recipient = await prisma.recipient.create({
       data: {
-        id: 'recipient-1',
         name: 'João Silva',
         street: 'Avenida Paulista',
         number: 123,
@@ -71,64 +81,50 @@ describe('List Orders Controller (e2e)', () => {
     const orders = await Promise.all([
       prisma.order.create({
         data: {
-          id: 'order-1',
-          recipientId: 'recipient-1',
-          status: 'pending',
+          recipientId: recipient.id,
+          deliverymanId: deliveryman.id,
+          status: 'delivered',
           createdAt: new Date('2025-09-17T02:54:27.957Z'),
         },
       }),
       prisma.order.create({
         data: {
-          id: 'order-2',
-          recipientId: 'recipient-1',
+          recipientId: recipient.id,
+          deliverymanId: deliveryman.id,
           status: 'pending',
           createdAt: new Date('2025-09-16T21:54:07.238Z'),
         },
       }),
     ])
 
-    return { admin, recipient, orders }
+    return { admin, deliveryman, recipient, orders }
   }
 
-  it('[GET] /orders - should list orders for an active admin', async () => {
-    const { admin } = await seedAdminAndOrders()
+  it('[GET] /deliveries/:userId - should list delivered orders for a deliveryman if admin is active', async () => {
+    const { admin, deliveryman, recipient } = await seedAdminAndOrders()
 
     const token = jwtService.sign({ sub: admin.id })
 
     const response = await request(app.getHttpServer())
-      .get('/orders?page=1')
+      .get(`/deliveries/${deliveryman.id}`)
       .set('Authorization', `Bearer ${token}`)
       .set('x-user-id', admin.id)
 
     expect(response.status).toBe(HttpStatus.OK)
-    expect(response.body.orders).toHaveLength(2)
+    expect(response.body.deliveries).toHaveLength(1)
+
     expect(response.body).toEqual({
-      orders: [
+      deliveries: [
         expect.objectContaining({
-          id: 'order-1',
-          recipientId: 'recipient-1',
-          status: 'pending',
+          id: expect.any(String),
+          recipientId: recipient.id,
+          deliverymanId: deliveryman.id,
+          status: 'delivered',
           createdAt: '2025-09-17T02:54:27.957Z',
+          updatedAt: expect.any(String),
+          deliveryPhoto: expect.any(Array),
           recipient: expect.objectContaining({
-            id: 'recipient-1',
-            name: 'João Silva',
-            email: 'joao.silva@example.com',
-            phone: '11987654322',
-            street: 'Avenida Paulista',
-            number: 123,
-            neighborhood: 'Bela Vista',
-            city: 'São Paulo',
-            state: 'SP',
-            zipCode: 12345678,
-          }),
-        }),
-        expect.objectContaining({
-          id: 'order-2',
-          recipientId: 'recipient-1',
-          status: 'pending',
-          createdAt: '2025-09-16T21:54:07.238Z',
-          recipient: expect.objectContaining({
-            id: 'recipient-1',
+            id: recipient.id,
             name: 'João Silva',
             email: 'joao.silva@example.com',
             phone: '11987654322',
@@ -144,48 +140,100 @@ describe('List Orders Controller (e2e)', () => {
     })
   })
 
-  it('[GET] /orders - should return empty list for an active admin when page is empty', async () => {
+  it('[GET] /deliveries/:userId - should list delivered orders for a deliveryman if requested by themselves', async () => {
+    const { deliveryman, recipient } = await seedAdminAndOrders()
+
+    const token = jwtService.sign({ sub: deliveryman.id })
+
+    const response = await request(app.getHttpServer())
+      .get(`/deliveries/${deliveryman.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('x-user-id', deliveryman.id)
+
+    expect(response.status).toBe(HttpStatus.OK)
+    expect(response.body.deliveries).toHaveLength(1)
+    expect(response.body).toEqual({
+      deliveries: [
+        expect.objectContaining({
+          id: expect.any(String),
+          recipientId: recipient.id,
+          deliverymanId: deliveryman.id,
+          status: 'delivered',
+          createdAt: '2025-09-17T02:54:27.957Z',
+          updatedAt: expect.any(String),
+          deliveryPhoto: expect.any(Array),
+          recipient: expect.objectContaining({
+            id: recipient.id,
+            name: 'João Silva',
+            email: 'joao.silva@example.com',
+            phone: '11987654322',
+            street: 'Avenida Paulista',
+            number: 123,
+            neighborhood: 'Bela Vista',
+            city: 'São Paulo',
+            state: 'SP',
+            zipCode: 12345678,
+          }),
+        }),
+      ],
+    })
+  })
+
+  it('[GET] /deliveries/:userId - should return 403 if user is not an active admin or the deliveryman themselves', async () => {
+    const { admin } = await seedAdminAndOrders()
+
+    const deliveryman2 = await prisma.user.create({
+      data: {
+        id: 'deliveryman-2',
+        name: 'Other Deliveryman',
+        cpf: '12345678902',
+        password: await hash('password', 8),
+        role: 'deliveryman',
+        email: 'other.deliveryman@example.com',
+        phone: '11987654325',
+        status: 'active',
+      },
+    })
+
+    const token = jwtService.sign({ sub: deliveryman2.id })
+
+    const response = await request(app.getHttpServer())
+      .get(`/deliveries/${admin.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('x-user-id', deliveryman2.id)
+
+    expect(response.status).toBe(HttpStatus.FORBIDDEN)
+    expect(response.body.message).toContain(
+      'Only active admins can list deliverymen',
+    )
+  })
+
+  it('[GET] /deliveries/:userId - should return 400 if user is not found', async () => {
     const { admin } = await seedAdminAndOrders()
 
     const token = jwtService.sign({ sub: admin.id })
 
     const response = await request(app.getHttpServer())
-      .get('/orders?page=2')
+      .get('/deliveries/a2f22a5c-e3f4-4b79-8d0c-3045c635d2a4')
       .set('Authorization', `Bearer ${token}`)
       .set('x-user-id', admin.id)
 
-    expect(response.status).toBe(HttpStatus.OK)
-    expect(response.body.orders).toHaveLength(0)
-    expect(response.body).toEqual({ orders: [] })
+    expect(response.status).toBe(HttpStatus.BAD_REQUEST)
+    expect(response.body.message).toBe('User not found')
   })
 
-  it('[GET] /orders - should return 403 if user is not an active admin', async () => {
-    await seedAdminAndOrders()
+  it('[GET] /deliveries/:userId - should return 400 if user is not a deliveryman', async () => {
+    const { admin } = await seedAdminAndOrders()
 
-    const deliveryman = await prisma.user.create({
-      data: {
-        id: 'deliveryman-1',
-        name: 'Deliveryman User',
-        cpf: '98765432100',
-        password: await hash('password', 8),
-        role: 'deliveryman',
-        email: 'deliveryman@example.com',
-        phone: '11987654324',
-        status: 'active',
-      },
-    })
-
-    const token = jwtService.sign({ sub: deliveryman.id })
+    const token = jwtService.sign({ sub: admin.id })
 
     const response = await request(app.getHttpServer())
-      .get('/orders?page=1')
+      .get(`/deliveries/${admin.id}`)
       .set('Authorization', `Bearer ${token}`)
-      .set('x-user-id', deliveryman.id)
+      .set('x-user-id', admin.id)
 
-    expect(response.status).toBe(HttpStatus.FORBIDDEN)
-    expect(response.body.message).toContain(
-      'Only active admins can list orders',
-    )
+    expect(response.status).toBe(HttpStatus.BAD_REQUEST)
+    expect(response.body.message).toBe('User is not a deliveryman')
   })
 
   afterAll(async () => {
