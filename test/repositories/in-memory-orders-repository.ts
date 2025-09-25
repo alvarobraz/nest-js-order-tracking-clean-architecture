@@ -27,9 +27,7 @@ export class InMemoryOrdersRepository implements OrdersRepository {
     return order || null
   }
 
-  async save(
-    order: Order & { recipient?: Recipient },
-  ): Promise<Order & { recipient?: Recipient }> {
+  async save(order: Order & { recipient?: Recipient }): Promise<void> {
     const index = this.items.findIndex(
       (item) => item.id.toString() === order.id.toString(),
     )
@@ -46,7 +44,7 @@ export class InMemoryOrdersRepository implements OrdersRepository {
     )
 
     DomainEvents.dispatchEventsForAggregate(order.id)
-    return order
+    // return order
   }
 
   async delete(id: string): Promise<void> {

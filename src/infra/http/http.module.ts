@@ -42,6 +42,8 @@ import { StorageModule } from '../storage/storage.module'
 import { UploadAndCreateAttachmentUseCase } from '@/domain/order-control/application/use-cases/upload-and-create-attachment'
 import { MarkOrderAsDeliveredUseCase } from '@/domain/order-control/application/use-cases/mark-order-as-delivered'
 import { MarkOrderAsDeliveredController } from './controllers/mark-order-as-delivered.controller'
+import { MarkOrderAsReturnedUseCase } from '@/domain/order-control/application/use-cases/mark-order-as-returned'
+import { MarkOrderAsReturnedController } from './controllers/mark-order-as-returned.controller'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule, StorageModule],
@@ -64,6 +66,7 @@ import { MarkOrderAsDeliveredController } from './controllers/mark-order-as-deli
     PickUpOrderController,
     UploadAttachmentController,
     MarkOrderAsDeliveredController,
+    MarkOrderAsReturnedController,
   ],
   providers: [
     CreateDeliverymanUseCase,
@@ -83,6 +86,7 @@ import { MarkOrderAsDeliveredController } from './controllers/mark-order-as-deli
     ListNearbyOrdersUseCase,
     PickUpOrderUseCase,
     MarkOrderAsDeliveredUseCase,
+    MarkOrderAsReturnedUseCase,
     {
       provide: 'OrdersRepository',
       useClass: PrismaOrdersRepository,

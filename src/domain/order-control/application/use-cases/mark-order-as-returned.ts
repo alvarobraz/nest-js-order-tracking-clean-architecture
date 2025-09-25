@@ -1,22 +1,37 @@
-import { left } from '@/core/either'
+import { Either, left, right } from '@/core/either'
 import { OrdersRepository } from '@/domain/order-control/application/repositories/orders-repository'
 import { UsersRepository } from '@/domain/order-control/application/repositories/users-repository'
 import { OnlyActiveUsersCanMarkOrdersAsReturnedError } from './errors/only-active-users-can-mark-orders-as-returned-error'
 import { OrderNotFoundError } from './errors/order-not-found-error'
 import { OnlyAssignedDeliverymanOrAdminCanMarkOrderAsReturnedError } from './errors/only-assigned-deliveryman-or-admin-can-mark-order-as-returned-error'
+import { Order } from '../../enterprise/entities/order'
+import { Injectable } from '@nestjs/common'
 
 interface MarkOrderAsReturnedUseCaseRequest {
   userId: string
   orderId: string
 }
 
+type MarkOrderAsReturnedUseCaseResponse = Either<
+  | OnlyActiveUsersCanMarkOrdersAsReturnedError
+  | OrderNotFoundError
+  | OnlyAssignedDeliverymanOrAdminCanMarkOrderAsReturnedError,
+  {
+    order: Order | void
+  }
+>
+
+@Injectable()
 export class MarkOrderAsReturnedUseCase {
   constructor(
     private ordersRepository: OrdersRepository,
     private usersRepository: UsersRepository,
   ) {}
 
-  async execute({ userId, orderId }: MarkOrderAsReturnedUseCaseRequest) {
+  async execute({
+    userId,
+    orderId,
+  }: MarkOrderAsReturnedUseCaseRequest): Promise<MarkOrderAsReturnedUseCaseResponse> {
     const user = await this.usersRepository.findById(userId)
     if (!user || user.status !== 'active') {
       return left(new OnlyActiveUsersCanMarkOrdersAsReturnedError())
@@ -40,6 +55,6 @@ export class MarkOrderAsReturnedUseCase {
 
     await this.ordersRepository.save(order)
 
-    return order
+    return right({ order })
   }
 }
