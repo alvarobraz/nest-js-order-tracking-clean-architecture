@@ -3,6 +3,7 @@ import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { Optional } from '@/core/types/optional'
 
 export interface RecipientProps {
+  userId: string
   name: string
   street: string
   number: number
@@ -17,6 +18,10 @@ export interface RecipientProps {
 }
 
 export class Recipient extends Entity<RecipientProps> {
+  get userId() {
+    return this.props.userId
+  }
+
   get name() {
     return this.props.name
   }
@@ -63,6 +68,11 @@ export class Recipient extends Entity<RecipientProps> {
 
   private touch() {
     this.props.updatedAt = new Date()
+  }
+
+  set userId(userId: string) {
+    this.props.userId = userId
+    this.touch()
   }
 
   set name(name: string) {

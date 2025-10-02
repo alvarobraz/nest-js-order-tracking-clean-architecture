@@ -5,7 +5,7 @@ import { Optional } from '@/core/types/optional'
 export interface UserProps {
   cpf: string
   password: string
-  role: 'admin' | 'deliveryman'
+  role: 'admin' | 'deliveryman' | 'recipient'
   name: string
   email?: string | null
   phone?: string | null

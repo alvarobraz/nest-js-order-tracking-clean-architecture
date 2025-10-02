@@ -8,6 +8,7 @@ import { RecipientAlreadyExistsError } from './errors/recipient-already-exists'
 
 interface CreateRecipientUseCaseRequest {
   adminId: string
+  userId: string
   name: string
   street: string
   number: number
@@ -34,6 +35,7 @@ export class CreateRecipientUseCase {
 
   async execute({
     adminId,
+    userId,
     name,
     street,
     number,
@@ -56,6 +58,7 @@ export class CreateRecipientUseCase {
     }
 
     const recipient = Recipient.create({
+      userId,
       name,
       street,
       number,

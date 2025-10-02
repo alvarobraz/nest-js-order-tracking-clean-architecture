@@ -17,6 +17,7 @@ import { OnlyActiveAdminsCanCreateRecipientsError } from '@/domain/order-control
 import { RecipientAlreadyExistsError } from '@/domain/order-control/application/use-cases/errors/recipient-already-exists'
 
 const createRecipientBodySchema = z.object({
+  userId: z.string(),
   name: z.string().min(7, 'Name is required'),
   street: z.string().min(4, 'Street is required'),
   number: z
@@ -55,6 +56,7 @@ export class CreateRecipientController {
     @CurrentUser() user: UserPayload,
   ) {
     const {
+      userId,
       name,
       street,
       number,
@@ -69,6 +71,7 @@ export class CreateRecipientController {
 
     const result = await this.createRecipient.execute({
       adminId,
+      userId,
       name,
       street,
       number,

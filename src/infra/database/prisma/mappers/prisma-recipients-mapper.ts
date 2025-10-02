@@ -6,6 +6,7 @@ export class PrismaRecipientMapper {
   static toDomain(raw: PrismaRecipient): Recipient {
     return Recipient.create(
       {
+        userId: raw.userId,
         name: raw.name,
         street: raw.street,
         number: raw.number,
@@ -25,7 +26,7 @@ export class PrismaRecipientMapper {
   static toPrisma(recipient: Recipient): PrismaRecipient {
     return {
       id: recipient.id.toString(),
-      userId: null,
+      userId: recipient.userId,
       name: recipient.name,
       street: recipient.street,
       number: Number(recipient.number),
