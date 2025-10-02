@@ -10,6 +10,7 @@ datasource db {
 enum UserRole {
   admin
   deliveryman
+  recipient
 }
 
 enum UserStatus {
@@ -45,7 +46,7 @@ model User {
 
 model Recipient {
   id           String    @id @default(uuid())
-  userId       String?   @map("user_id")
+  userId       String    @map("user_id")
   name         String
   street       String
   number       Int
@@ -58,7 +59,7 @@ model Recipient {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime? @updatedAt @map("updated_at")
 
-  user   User?   @relation("RecipientUser", fields: [userId], references: [id])
+  user   User    @relation("RecipientUser", fields: [userId], references: [id])
   orders Order[] @relation("RecipientOrders")
 
   @@map("recipients")
