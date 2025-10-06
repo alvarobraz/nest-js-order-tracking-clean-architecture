@@ -36,11 +36,11 @@ describe('Delete Recipient Use Case', () => {
       {
         name: 'João Silva',
         street: 'Rua das Flores',
-        number: '123',
+        number: 123,
         neighborhood: 'Centro',
         city: 'Curitiba',
         state: 'PR',
-        zipCode: '80010-000',
+        zipCode: 80010000,
         phone: '(41) 91234-5678',
         email: 'joao@example.com',
       },

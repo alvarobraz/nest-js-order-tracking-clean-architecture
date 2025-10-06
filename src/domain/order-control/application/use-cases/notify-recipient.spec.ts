@@ -6,14 +6,20 @@ import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { makeOrder } from 'test/factories/make-order'
 import { left } from '@/core/either'
 import { OrderNotFoundError } from './errors/order-not-found-error'
+import { InMemoryOrderAttachmentsRepository } from 'test/repositories/in-memory-order-attachments-repository'
 
+let inMemoryOrderAttachmentsRepository: InMemoryOrderAttachmentsRepository
 let inMemoryOrdersRepository: InMemoryOrdersRepository
 let inMemoryNotificationsRepository: InMemoryNotificationsRepository
 let sut: NotifyRecipientUseCase
 
 describe('Notify Recipient Use Case', () => {
   beforeEach(() => {
-    inMemoryOrdersRepository = new InMemoryOrdersRepository()
+    inMemoryOrderAttachmentsRepository =
+      new InMemoryOrderAttachmentsRepository()
+    inMemoryOrdersRepository = new InMemoryOrdersRepository(
+      inMemoryOrderAttachmentsRepository,
+    )
     inMemoryNotificationsRepository = new InMemoryNotificationsRepository()
     sut = new NotifyRecipientUseCase(
       inMemoryOrdersRepository,
@@ -21,157 +27,49 @@ describe('Notify Recipient Use Case', () => {
     )
   })
 
-  it('should create a notification for an order with status pending', async () => {
-    const order = makeOrder(
-      {
-        recipientId: new UniqueEntityID('recipient-1'),
-      },
-      new UniqueEntityID('order-1'),
-    )
+  const statuses = ['pending', 'picked_up', 'delivered', 'returned'] as const
 
-    await inMemoryOrdersRepository.create(order)
+  for (const status of statuses) {
+    it(`should create a notification for an order with status ${status}`, async () => {
+      const order = makeOrder(
+        {
+          recipientId: new UniqueEntityID('recipient-1'),
+        },
+        new UniqueEntityID('order-1'),
+      )
 
-    const result = await sut.execute({
-      orderId: 'order-1',
-      status: 'pending',
+      await inMemoryOrdersRepository.create(order)
+
+      const result = await sut.execute({
+        orderId: 'order-1',
+        status,
+      })
+
+      expect(result.isRight()).toBe(true)
+      expect(result.value).toEqual({
+        notification: expect.objectContaining({
+          recipientId: new UniqueEntityID('recipient-1'),
+          title: 'Order status update',
+          content: `Order status updated to ${status}`,
+        }),
+      })
+
+      expect(inMemoryNotificationsRepository.items).toHaveLength(1)
+      expect(inMemoryNotificationsRepository.items[0]).toEqual(
+        expect.objectContaining({
+          recipientId: new UniqueEntityID('recipient-1'),
+          title: 'Order status update',
+          content: `Order status updated to ${status}`,
+        }),
+      )
+
+      expect(await inMemoryOrdersRepository.findById('order-1')).toEqual(
+        expect.objectContaining({
+          id: new UniqueEntityID('order-1'),
+        }),
+      )
     })
-
-    expect(result.isRight()).toBe(true)
-    expect(result.value).toEqual({
-      notification: expect.objectContaining({
-        orderId: new UniqueEntityID('order-1'),
-        message: 'Order status updated to pending',
-        type: 'email',
-      }),
-    })
-    expect(inMemoryNotificationsRepository.items).toHaveLength(1)
-    expect(inMemoryNotificationsRepository.items[0]).toEqual(
-      expect.objectContaining({
-        orderId: new UniqueEntityID('order-1'),
-        message: 'Order status updated to pending',
-        type: 'email',
-      }),
-    )
-    expect(await inMemoryOrdersRepository.findById('order-1')).toEqual(
-      expect.objectContaining({
-        id: new UniqueEntityID('order-1'),
-      }),
-    )
-  })
-
-  it('should create a notification for an order with status picked_up', async () => {
-    const order = makeOrder(
-      {
-        recipientId: new UniqueEntityID('recipient-1'),
-      },
-      new UniqueEntityID('order-1'),
-    )
-
-    await inMemoryOrdersRepository.create(order)
-
-    const result = await sut.execute({
-      orderId: 'order-1',
-      status: 'picked_up',
-    })
-
-    expect(result.isRight()).toBe(true)
-    expect(result.value).toEqual({
-      notification: expect.objectContaining({
-        orderId: new UniqueEntityID('order-1'),
-        message: 'Order status updated to picked_up',
-        type: 'email',
-      }),
-    })
-    expect(inMemoryNotificationsRepository.items).toHaveLength(1)
-    expect(inMemoryNotificationsRepository.items[0]).toEqual(
-      expect.objectContaining({
-        orderId: new UniqueEntityID('order-1'),
-        message: 'Order status updated to picked_up',
-        type: 'email',
-      }),
-    )
-    expect(await inMemoryOrdersRepository.findById('order-1')).toEqual(
-      expect.objectContaining({
-        id: new UniqueEntityID('order-1'),
-      }),
-    )
-  })
-
-  it('should create a notification for an order with status delivered', async () => {
-    const order = makeOrder(
-      {
-        recipientId: new UniqueEntityID('recipient-1'),
-      },
-      new UniqueEntityID('order-1'),
-    )
-
-    await inMemoryOrdersRepository.create(order)
-
-    const result = await sut.execute({
-      orderId: 'order-1',
-      status: 'delivered',
-    })
-
-    expect(result.isRight()).toBe(true)
-    expect(result.value).toEqual({
-      notification: expect.objectContaining({
-        orderId: new UniqueEntityID('order-1'),
-        message: 'Order status updated to delivered',
-        type: 'email',
-      }),
-    })
-    expect(inMemoryNotificationsRepository.items).toHaveLength(1)
-    expect(inMemoryNotificationsRepository.items[0]).toEqual(
-      expect.objectContaining({
-        orderId: new UniqueEntityID('order-1'),
-        message: 'Order status updated to delivered',
-        type: 'email',
-      }),
-    )
-    expect(await inMemoryOrdersRepository.findById('order-1')).toEqual(
-      expect.objectContaining({
-        id: new UniqueEntityID('order-1'),
-      }),
-    )
-  })
-
-  it('should create a notification for an order with status returned', async () => {
-    const order = makeOrder(
-      {
-        recipientId: new UniqueEntityID('recipient-1'),
-      },
-      new UniqueEntityID('order-1'),
-    )
-
-    await inMemoryOrdersRepository.create(order)
-
-    const result = await sut.execute({
-      orderId: 'order-1',
-      status: 'returned',
-    })
-
-    expect(result.isRight()).toBe(true)
-    expect(result.value).toEqual({
-      notification: expect.objectContaining({
-        orderId: new UniqueEntityID('order-1'),
-        message: 'Order status updated to returned',
-        type: 'email',
-      }),
-    })
-    expect(inMemoryNotificationsRepository.items).toHaveLength(1)
-    expect(inMemoryNotificationsRepository.items[0]).toEqual(
-      expect.objectContaining({
-        orderId: new UniqueEntityID('order-1'),
-        message: 'Order status updated to returned',
-        type: 'email',
-      }),
-    )
-    expect(await inMemoryOrdersRepository.findById('order-1')).toEqual(
-      expect.objectContaining({
-        id: new UniqueEntityID('order-1'),
-      }),
-    )
-  })
+  }
 
   it('should return an error if order does not exist', async () => {
     const result = await sut.execute({

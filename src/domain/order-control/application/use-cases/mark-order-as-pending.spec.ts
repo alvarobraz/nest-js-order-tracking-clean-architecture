@@ -8,14 +8,20 @@ import { makeOrder } from 'test/factories/make-order'
 import { left } from '@/core/either'
 import { OnlyActiveAdminsCanMarkOrdersAsPendingError } from './errors/only-active-admins-can-mark-orders-as-pending-error'
 import { OrderNotFoundError } from './errors/order-not-found-error'
+import { InMemoryOrderAttachmentsRepository } from 'test/repositories/in-memory-order-attachments-repository'
 
+let inMemoryOrderAttachmentsRepository: InMemoryOrderAttachmentsRepository
 let inMemoryOrdersRepository: InMemoryOrdersRepository
 let inMemoryUsersRepository: InMemoryUsersRepository
 let sut: MarkOrderAsPendingUseCase
 
 describe('Mark Order As Pending Use Case', () => {
   beforeEach(() => {
-    inMemoryOrdersRepository = new InMemoryOrdersRepository()
+    inMemoryOrderAttachmentsRepository =
+      new InMemoryOrderAttachmentsRepository()
+    inMemoryOrdersRepository = new InMemoryOrdersRepository(
+      inMemoryOrderAttachmentsRepository,
+    )
     inMemoryUsersRepository = new InMemoryUsersRepository()
     sut = new MarkOrderAsPendingUseCase(
       inMemoryOrdersRepository,
@@ -56,14 +62,13 @@ describe('Mark Order As Pending Use Case', () => {
         status: 'pending',
       }),
     })
-    expect(await inMemoryOrdersRepository.findById('order-1')).toEqual(
-      expect.objectContaining({
-        id: new UniqueEntityID('order-1'),
-        status: 'pending',
-        street: 'Rua das Flores',
-        number: '123',
-      }),
-    )
+
+    const updatedOrder = await inMemoryOrdersRepository.findById('order-1')
+
+    expect(updatedOrder).not.toBeNull()
+    expect(updatedOrder?.id).toEqual(new UniqueEntityID('order-1'))
+    expect(updatedOrder?.recipientId).toEqual(new UniqueEntityID('recipient-1'))
+    expect(updatedOrder?.status).toBe('pending')
   })
 
   it('should return an error if admin does not exist', async () => {

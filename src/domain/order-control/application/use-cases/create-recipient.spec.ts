@@ -32,21 +32,31 @@ describe('Create Recipient Use Case', () => {
       new UniqueEntityID('admin-1'),
     )
 
+    const userRecipient = makeUser(
+      {
+        role: 'recipient',
+        status: 'active',
+      },
+      new UniqueEntityID('recipient-1'),
+    )
+
     await inMemoryUsersRepository.create(admin)
+    await inMemoryUsersRepository.create(userRecipient)
 
     const recipientProps = makeRecipient({
       name: 'João Silva',
     })
 
     const result = await sut.execute({
+      userId: 'recipient-1',
       adminId: 'admin-1',
       name: recipientProps.name,
       street: 'Rua Carolina Castelli',
-      number: '123',
+      number: 123,
       neighborhood: 'Novo Mundo',
       city: 'Curitiba',
       state: 'PR',
-      zipCode: '81020-430',
+      zipCode: 81020430,
       phone: '(11) 91234-5678',
       email: 'joao.silva@example.com',
     })
@@ -60,11 +70,11 @@ describe('Create Recipient Use Case', () => {
     expect(recipient).toMatchObject({
       name: recipientProps.name,
       street: 'Rua Carolina Castelli',
-      number: '123',
+      number: 123,
       neighborhood: 'Novo Mundo',
       city: 'Curitiba',
       state: 'PR',
-      zipCode: '81020-430',
+      zipCode: 81020430,
       phone: '(11) 91234-5678',
       email: 'joao.silva@example.com',
     })
@@ -77,15 +87,26 @@ describe('Create Recipient Use Case', () => {
       name: 'João Silva',
     })
 
+    const userRecipient = makeUser(
+      {
+        role: 'recipient',
+        status: 'active',
+      },
+      new UniqueEntityID('recipient-1'),
+    )
+
+    await inMemoryUsersRepository.create(userRecipient)
+
     const result = await sut.execute({
+      userId: 'recipient-1',
       adminId: 'admin-1',
       name: recipientProps.name,
       street: 'Rua Oscar Kolbe',
-      number: '123',
+      number: 123,
       neighborhood: 'Lindóia',
       city: 'Curitiba',
       state: 'PR',
-      zipCode: '81010-120',
+      zipCode: 81010120,
       phone: '(11) 91234-5678',
       email: 'joao.silva@example.com',
     })
@@ -106,6 +127,15 @@ describe('Create Recipient Use Case', () => {
       new UniqueEntityID('deliveryman-1'),
     )
 
+    const userRecipient = makeUser(
+      {
+        role: 'recipient',
+        status: 'active',
+      },
+      new UniqueEntityID('recipient-1'),
+    )
+
+    await inMemoryUsersRepository.create(userRecipient)
     await inMemoryUsersRepository.create(deliveryman)
 
     const recipientProps = makeRecipient({
@@ -113,14 +143,15 @@ describe('Create Recipient Use Case', () => {
     })
 
     const result = await sut.execute({
+      userId: 'recipient-1',
       adminId: 'deliveryman-1',
       name: recipientProps.name,
       street: 'Rua Cirilo Merlin',
-      number: '123',
+      number: 123,
       neighborhood: 'Novo Mundo',
       city: 'Curitiba',
       state: 'PR',
-      zipCode: '81020-430',
+      zipCode: 81020430,
       phone: '(11) 91234-5678',
       email: 'joao.silva@example.com',
     })
@@ -141,6 +172,15 @@ describe('Create Recipient Use Case', () => {
       new UniqueEntityID('admin-1'),
     )
 
+    const userRecipient = makeUser(
+      {
+        role: 'recipient',
+        status: 'active',
+      },
+      new UniqueEntityID('recipient-1'),
+    )
+
+    await inMemoryUsersRepository.create(userRecipient)
     await inMemoryUsersRepository.create(admin)
 
     const recipientProps = makeRecipient({
@@ -148,14 +188,15 @@ describe('Create Recipient Use Case', () => {
     })
 
     const result = await sut.execute({
+      userId: 'recipient-1',
       adminId: 'admin-1',
       name: recipientProps.name,
       street: 'Rua Reinaldo Gusso',
-      number: '123',
+      number: 123,
       neighborhood: 'Capão Raso',
       city: 'Curitiba',
       state: 'PR',
-      zipCode: '81020-450',
+      zipCode: 81020450,
       phone: '(11) 91234-5678',
       email: 'joao.silva@example.com',
     })

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { CreateRecipientUseCase } from './create-user-recipient'
+import { CreateUserRecipientUseCase } from './create-user-recipient'
 import { InMemoryUsersRepository } from 'test/repositories/in-memory-users-repository'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { makeUser } from 'test/factories/make-users'
@@ -14,13 +14,16 @@ class MockHashGenerator implements HashGenerator {
 
 let inMemoryUsersRepository: InMemoryUsersRepository
 let mockHashGenerator: MockHashGenerator
-let sut: CreateRecipientUseCase
+let sut: CreateUserRecipientUseCase
 
 describe('Create Recipient Use Case', () => {
   beforeEach(() => {
     inMemoryUsersRepository = new InMemoryUsersRepository()
     mockHashGenerator = new MockHashGenerator()
-    sut = new CreateRecipientUseCase(inMemoryUsersRepository, mockHashGenerator)
+    sut = new CreateUserRecipientUseCase(
+      inMemoryUsersRepository,
+      mockHashGenerator,
+    )
   })
 
   it('should create a recipient user', async () => {

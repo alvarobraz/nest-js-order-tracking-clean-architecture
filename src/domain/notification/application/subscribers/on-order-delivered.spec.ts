@@ -17,10 +17,10 @@ import { OnOrderDelivered } from './on-order-delivered'
 
 let inMemoryOrdersRepository: InMemoryOrdersRepository
 let inMemoryUsersRepository: InMemoryUsersRepository
-let inMemoryOrderAttachmentsRepository: InMemoryOrderAttachmentsRepository
 let inMemoryNotificationsRepository: InMemoryNotificationsRepository
 let sendNotificationUseCase: SendNotificationUseCase
 let markOrderAsDeliveredUseCase: MarkOrderAsDeliveredUseCase
+let inMemoryOrderAttachmentsRepository: InMemoryOrderAttachmentsRepository
 
 let sendNotificationExecuteSpy: MockInstance<
   (
@@ -30,10 +30,13 @@ let sendNotificationExecuteSpy: MockInstance<
 
 describe('On Order Delivered', () => {
   beforeEach(() => {
-    inMemoryOrdersRepository = new InMemoryOrdersRepository()
-    inMemoryUsersRepository = new InMemoryUsersRepository()
     inMemoryOrderAttachmentsRepository =
       new InMemoryOrderAttachmentsRepository()
+    inMemoryOrdersRepository = new InMemoryOrdersRepository(
+      inMemoryOrderAttachmentsRepository,
+    )
+    inMemoryUsersRepository = new InMemoryUsersRepository()
+
     inMemoryNotificationsRepository = new InMemoryNotificationsRepository()
     sendNotificationUseCase = new SendNotificationUseCase(
       inMemoryNotificationsRepository,

@@ -49,7 +49,7 @@ describe('List Recipients Use Case', () => {
     await inMemoryRecipientsRepository.create(recipient1)
     await inMemoryRecipientsRepository.create(recipient2)
 
-    const result = await sut.execute({ adminId: 'admin-1' })
+    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
 
     expect(result.isRight()).toBe(true)
     expect(result.value).toBeInstanceOf(Array)
@@ -80,7 +80,7 @@ describe('List Recipients Use Case', () => {
 
     await inMemoryUsersRepository.create(admin)
 
-    const result = await sut.execute({ adminId: 'admin-1' })
+    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
 
     expect(result.isRight()).toBe(true)
     expect(result.value).toBeInstanceOf(Array)
@@ -90,7 +90,7 @@ describe('List Recipients Use Case', () => {
   })
 
   it('should return an error if admin does not exist', async () => {
-    const result = await sut.execute({ adminId: 'admin-1' })
+    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
 
     expect(result.isLeft()).toBe(true)
     expect(result.value).toBeInstanceOf(OnlyActiveAdminsCanListRecipientsError)
@@ -108,7 +108,7 @@ describe('List Recipients Use Case', () => {
 
     await inMemoryUsersRepository.create(deliveryman)
 
-    const result = await sut.execute({ adminId: 'deliveryman-1' })
+    const result = await sut.execute({ adminId: 'deliveryman-1', page: 1 })
 
     expect(result.isLeft()).toBe(true)
     expect(result.value).toBeInstanceOf(OnlyActiveAdminsCanListRecipientsError)
@@ -126,7 +126,7 @@ describe('List Recipients Use Case', () => {
 
     await inMemoryUsersRepository.create(admin)
 
-    const result = await sut.execute({ adminId: 'admin-1' })
+    const result = await sut.execute({ adminId: 'admin-1', page: 1 })
 
     expect(result.isLeft()).toBe(true)
     expect(result.value).toBeInstanceOf(OnlyActiveAdminsCanListRecipientsError)

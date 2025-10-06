@@ -10,14 +10,20 @@ import { left } from '@/core/either'
 import { OnlyActiveDeliverymenCanListNearbyOrdersError } from './errors/only-active-deliverymen-can-list-nearby-orders-error'
 import { Order } from '@/domain/order-control/enterprise/entities/order'
 import { Recipient } from '@/domain/order-control/enterprise/entities/recipient'
+import { InMemoryOrderAttachmentsRepository } from 'test/repositories/in-memory-order-attachments-repository'
 
+let inMemoryOrderAttachmentsRepository: InMemoryOrderAttachmentsRepository
 let inMemoryOrdersRepository: InMemoryOrdersRepository
 let inMemoryUsersRepository: InMemoryUsersRepository
 let sut: ListNearbyOrdersUseCase
 
 describe('List Nearby Orders Use Case', () => {
   beforeEach(() => {
-    inMemoryOrdersRepository = new InMemoryOrdersRepository()
+    inMemoryOrderAttachmentsRepository =
+      new InMemoryOrderAttachmentsRepository()
+    inMemoryOrdersRepository = new InMemoryOrdersRepository(
+      inMemoryOrderAttachmentsRepository,
+    )
     inMemoryUsersRepository = new InMemoryUsersRepository()
     sut = new ListNearbyOrdersUseCase(
       inMemoryOrdersRepository,

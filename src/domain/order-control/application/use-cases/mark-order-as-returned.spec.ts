@@ -129,7 +129,7 @@ describe('Mark Order As Returned Use Case', () => {
     )
   })
 
-  it.skip('should return an error if user does not exist', async () => {
+  it('should return an error if user does not exist', async () => {
     const order = makeOrder(
       {
         recipientId: new UniqueEntityID('recipient-1'),

@@ -13,12 +13,14 @@ import {
 import { PickUpOrderUseCase } from '@/domain/order-control/application/use-cases/pick-up-order'
 import { waitFor } from 'test/utils/wait-for'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
+import { InMemoryOrderAttachmentsRepository } from 'test/repositories/in-memory-order-attachments-repository'
 
 let inMemoryOrdersRepository: InMemoryOrdersRepository
 let inMemoryUsersRepository: InMemoryUsersRepository
 let inMemoryNotificationsRepository: InMemoryNotificationsRepository
 let sendNotificationUseCase: SendNotificationUseCase
 let pickUpOrderUseCase: PickUpOrderUseCase
+let inMemoryOrderAttachmentsRepository: InMemoryOrderAttachmentsRepository
 
 let sendNotificationExecuteSpy: MockInstance<
   (
@@ -28,7 +30,11 @@ let sendNotificationExecuteSpy: MockInstance<
 
 describe('On Order Picked Up', () => {
   beforeEach(() => {
-    inMemoryOrdersRepository = new InMemoryOrdersRepository()
+    inMemoryOrderAttachmentsRepository =
+      new InMemoryOrderAttachmentsRepository()
+    inMemoryOrdersRepository = new InMemoryOrdersRepository(
+      inMemoryOrderAttachmentsRepository,
+    )
     inMemoryUsersRepository = new InMemoryUsersRepository()
     inMemoryNotificationsRepository = new InMemoryNotificationsRepository()
     sendNotificationUseCase = new SendNotificationUseCase(

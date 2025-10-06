@@ -6,14 +6,26 @@ import { makeUser } from 'test/factories/make-users'
 import { left } from '@/core/either'
 import { OnlyActiveAdminsCanUpdateDeliverymenError } from './errors/only-active-admins-can-update-deliverymen-error'
 import { ActiveDeliverymanNotFoundError } from './errors/active-deliveryman-not-found-error'
+import { HashGenerator } from '@/domain/order-control/application/cryptography/hash-generator'
+
+class MockHashGenerator implements HashGenerator {
+  async hash(plain: string): Promise<string> {
+    return `hashed-${plain}`
+  }
+}
 
 let inMemoryUsersRepository: InMemoryUsersRepository
+let mockHashGenerator: MockHashGenerator
 let sut: UpdateDeliverymanUseCase
 
 describe('Update Deliveryman Use Case', () => {
   beforeEach(() => {
     inMemoryUsersRepository = new InMemoryUsersRepository()
-    sut = new UpdateDeliverymanUseCase(inMemoryUsersRepository)
+    mockHashGenerator = new MockHashGenerator()
+    sut = new UpdateDeliverymanUseCase(
+      inMemoryUsersRepository,
+      mockHashGenerator,
+    )
   })
 
   it('should update deliveryman name if admin is valid and active', async () => {

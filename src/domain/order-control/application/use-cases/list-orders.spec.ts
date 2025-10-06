@@ -7,14 +7,20 @@ import { makeUser } from 'test/factories/make-users'
 import { makeOrder } from 'test/factories/make-order'
 import { left } from '@/core/either'
 import { OnlyActiveAdminsCanListOrdersError } from './errors/only-active-admins-can-list-orders-error'
+import { InMemoryOrderAttachmentsRepository } from 'test/repositories/in-memory-order-attachments-repository'
 
+let inMemoryOrderAttachmentsRepository: InMemoryOrderAttachmentsRepository
 let inMemoryOrdersRepository: InMemoryOrdersRepository
 let inMemoryUsersRepository: InMemoryUsersRepository
 let sut: ListOrdersUseCase
 
 describe('List Orders Use Case', () => {
   beforeEach(() => {
-    inMemoryOrdersRepository = new InMemoryOrdersRepository()
+    inMemoryOrderAttachmentsRepository =
+      new InMemoryOrderAttachmentsRepository()
+    inMemoryOrdersRepository = new InMemoryOrdersRepository(
+      inMemoryOrderAttachmentsRepository,
+    )
     inMemoryUsersRepository = new InMemoryUsersRepository()
     sut = new ListOrdersUseCase(
       inMemoryOrdersRepository,

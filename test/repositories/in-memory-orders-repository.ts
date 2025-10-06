@@ -14,7 +14,7 @@ export class InMemoryOrdersRepository implements OrdersRepository {
     this.items.push(order)
 
     await this.orderAttachmentsRepository.createMany(
-      order.deliveryPhoto.getItems(),
+      order.deliveryPhoto?.getItems?.() ?? [],
     )
 
     DomainEvents.dispatchEventsForAggregate(order.id)

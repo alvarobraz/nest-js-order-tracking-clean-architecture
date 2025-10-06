@@ -12,7 +12,9 @@ import { left } from '@/core/either'
 import { OnlyActiveDeliverymenCanPickUpOrdersError } from './errors/only-active-deliverymen-can-pick-up-orders-error'
 import { OrderNotFoundError } from './errors/order-not-found-error'
 import { OrderMustBePendingToBePickedUpError } from './errors/order-must-be-pending-to-be-picked-up-error'
+import { InMemoryOrderAttachmentsRepository } from 'test/repositories/in-memory-order-attachments-repository'
 
+let inMemoryOrderAttachmentsRepository: InMemoryOrderAttachmentsRepository
 let inMemoryOrdersRepository: InMemoryOrdersRepository
 let inMemoryUsersRepository: InMemoryUsersRepository
 let inMemoryRecipientsRepository: InMemoryRecipientsRepository
@@ -20,7 +22,11 @@ let sut: PickUpOrderUseCase
 
 describe('Pick Up Order Use Case', () => {
   beforeEach(() => {
-    inMemoryOrdersRepository = new InMemoryOrdersRepository()
+    inMemoryOrderAttachmentsRepository =
+      new InMemoryOrderAttachmentsRepository()
+    inMemoryOrdersRepository = new InMemoryOrdersRepository(
+      inMemoryOrderAttachmentsRepository,
+    )
     inMemoryUsersRepository = new InMemoryUsersRepository()
     inMemoryRecipientsRepository = new InMemoryRecipientsRepository()
     sut = new PickUpOrderUseCase(

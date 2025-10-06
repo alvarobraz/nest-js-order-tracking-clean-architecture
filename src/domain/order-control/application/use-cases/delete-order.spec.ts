@@ -8,14 +8,20 @@ import { makeOrder } from 'test/factories/make-order'
 import { left } from '@/core/either'
 import { OnlyActiveAdminsCanDeleteOrdersError } from './errors/only-active-admins-can-delete-orders-error'
 import { OrderNotFoundError } from './errors/order-not-found-error'
+import { InMemoryOrderAttachmentsRepository } from 'test/repositories/in-memory-order-attachments-repository'
 
+let inMemoryOrderAttachmentsRepository: InMemoryOrderAttachmentsRepository
 let inMemoryOrdersRepository: InMemoryOrdersRepository
 let inMemoryUsersRepository: InMemoryUsersRepository
 let sut: DeleteOrderUseCase
 
 describe('Delete Order Use Case', () => {
   beforeEach(() => {
-    inMemoryOrdersRepository = new InMemoryOrdersRepository()
+    inMemoryOrderAttachmentsRepository =
+      new InMemoryOrderAttachmentsRepository()
+    inMemoryOrdersRepository = new InMemoryOrdersRepository(
+      inMemoryOrderAttachmentsRepository,
+    )
     inMemoryUsersRepository = new InMemoryUsersRepository()
     sut = new DeleteOrderUseCase(
       inMemoryOrdersRepository,
