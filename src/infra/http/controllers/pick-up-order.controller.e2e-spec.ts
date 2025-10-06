@@ -301,7 +301,7 @@ describe('Pick Up Order Controller (e2e)', () => {
     )
   })
 
-  it.skip('[PATCH] /order/pick-up/:orderId - should return 400 if order is not pending', async () => {
+  it('[PATCH] /order/pick-up/:orderId - should return 400 if order is not pending', async () => {
     const admin = await prisma.user.create({
       data: {
         name: 'John Doe',
@@ -315,7 +315,7 @@ describe('Pick Up Order Controller (e2e)', () => {
 
     const accessToken = jwt.sign({ sub: admin.id })
 
-    const recipient = await request(app.getHttpServer())
+    const recipientResponse = await request(app.getHttpServer())
       .post('/recipients')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -331,61 +331,78 @@ describe('Pick Up Order Controller (e2e)', () => {
         email: 'joao.silva@email.com',
       })
 
-    expect(recipient.statusCode).toBe(201)
+    expect(recipientResponse.statusCode).toBe(201)
 
     const recipientOnDatabase = await prisma.recipient.findFirst({
-      where: {
-        name: 'João Silva',
-      },
+      where: { name: 'João Silva' },
     })
 
-    const order = await request(app.getHttpServer())
+    const orderResponse = await request(app.getHttpServer())
       .post('/orders')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         id: admin.id,
         recipientId: recipientOnDatabase?.id,
-        status: 'delivered',
       })
 
-    expect(order.statusCode).toBe(201)
+    expect(orderResponse.statusCode).toBe(201)
 
-    const response = await request(app.getHttpServer())
+    const ordersResponse = await request(app.getHttpServer())
       .get('/orders?page=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .set('x-user-id', admin.id)
 
     const deliveryman = await prisma.user.create({
       data: {
-        name: 'John Doe',
+        name: 'Jane Doe',
         cpf: '12345678901',
         password: await hash('password123', 8),
         role: 'deliveryman',
-        email: 'john.doe@example.com',
+        email: 'jane.doe@example.com',
         phone: '21999887766',
-        status: 'inactive',
+        status: 'active',
       },
     })
 
     const token = jwt.sign({ sub: deliveryman.id })
 
-    const responsePickUpOrder = await request(app.getHttpServer())
-      .patch(`/order/pick-up/${response.body.orders[0].id}`)
+    const pickUpResponse = await request(app.getHttpServer())
+      .patch(`/order/pick-up/${ordersResponse.body.orders[0].id}`)
       .set('Authorization', `Bearer ${token}`)
 
-    expect(responsePickUpOrder.status).toBe(HttpStatus.OK)
-    expect(responsePickUpOrder.body.order).toBeDefined()
+    expect(pickUpResponse.status).toBe(HttpStatus.OK)
 
-    expect(responsePickUpOrder.body.order.deliverymanId).toBe(deliveryman.id)
-    expect(responsePickUpOrder.body.order.recipient.name).toBe('João Silva')
-    expect(responsePickUpOrder.body.order.status).toBe('picked_up')
+    const responseAttachment1 = await prisma.attachment.create({
+      data: {
+        title: 'photo-1',
+        url: 'uuid-photo-1',
+      },
+    })
 
-    const res = await request(app.getHttpServer())
-      .patch(`/order/pick-up/${response.body.orders[0].id}`)
+    const responseAttachment2 = await prisma.attachment.create({
+      data: {
+        title: 'photo-2',
+        url: 'uuid-photo-2',
+      },
+    })
+
+    const response = await request(app.getHttpServer())
+      .put(`/order/mark-as-delivered/${ordersResponse.body.orders[0].id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        deliveryPhotoIds: [responseAttachment1.id, responseAttachment2.id],
+      })
+
+    expect(response.status).toBe(HttpStatus.OK)
+
+    const pickUpResponseUnauthorized = await request(app.getHttpServer())
+      .patch(`/order/pick-up/${ordersResponse.body.orders[0].id}`)
       .set('Authorization', `Bearer ${token}`)
 
-    expect(res.status).toBe(HttpStatus.BAD_REQUEST)
-    expect(res.body.message).toBe('Order must be pending to be picked up')
+    expect(pickUpResponseUnauthorized.status).toBe(HttpStatus.BAD_REQUEST)
+    expect(pickUpResponseUnauthorized.body.message).toBe(
+      'Order must be pending to be picked up',
+    )
   })
 
   afterAll(async () => {
