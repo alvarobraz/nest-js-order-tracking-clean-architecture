@@ -91,7 +91,7 @@ describe('Mark Order As Pending Use Case', () => {
     expect(await inMemoryOrdersRepository.findById('order-1')).toEqual(
       expect.objectContaining({
         id: new UniqueEntityID('order-1'),
-        status: expect.any(String), // Unchanged
+        status: expect.any(String),
       }),
     )
   })

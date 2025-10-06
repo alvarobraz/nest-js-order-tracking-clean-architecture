@@ -33,8 +33,8 @@ describe('Delete Recipient Controller (e2e)', () => {
   })
 
   beforeEach(async () => {
-    await prisma.user.deleteMany({})
     await prisma.recipient.deleteMany({})
+    await prisma.user.deleteMany({})
   })
 
   async function seedAdminAndRecipient() {
@@ -50,8 +50,20 @@ describe('Delete Recipient Controller (e2e)', () => {
       },
     })
 
+    const userRecipient = await prisma.user.create({
+      data: {
+        name: 'Fernanda Costa',
+        cpf: '98765432100',
+        password: '1234567',
+        role: 'recipient',
+        email: 'fernanda.costa@example.com',
+        phone: '31988776655',
+      },
+    })
+
     const recipient = await prisma.recipient.create({
       data: {
+        userId: userRecipient.id,
         name: 'João Silva',
         street: 'Avenida Paulista',
         number: 123,
@@ -107,7 +119,7 @@ describe('Delete Recipient Controller (e2e)', () => {
     const deliveryman = await prisma.user.create({
       data: {
         name: 'Deliveryman User',
-        cpf: '98765432100',
+        cpf: '98765432200',
         password: await hash('password', 8),
         role: 'deliveryman',
         email: 'deliveryman@example.com',
@@ -158,8 +170,8 @@ describe('Delete Recipient Controller (e2e)', () => {
   })
 
   afterAll(async () => {
-    await prisma.user.deleteMany({})
     await prisma.recipient.deleteMany({})
+    await prisma.user.deleteMany({})
     await app.close()
   })
 })

@@ -42,7 +42,6 @@ describe('List Orders Controller (e2e)', () => {
   async function seedAdminAndOrders() {
     const admin = await prisma.user.create({
       data: {
-        id: 'admin-1',
         name: 'Admin User',
         cpf: '12345678901',
         password: await hash('password', 8),
@@ -53,9 +52,20 @@ describe('List Orders Controller (e2e)', () => {
       },
     })
 
+    const userRecipient = await prisma.user.create({
+      data: {
+        name: 'Fernanda Costa',
+        cpf: '27881828056',
+        password: '1234567',
+        role: 'recipient',
+        email: 'fernanda.costa@example.com',
+        phone: '31988776655',
+      },
+    })
+
     const recipient = await prisma.recipient.create({
       data: {
-        id: 'recipient-1',
+        userId: userRecipient.id,
         name: 'João Silva',
         street: 'Avenida Paulista',
         number: 123,
@@ -71,16 +81,14 @@ describe('List Orders Controller (e2e)', () => {
     const orders = await Promise.all([
       prisma.order.create({
         data: {
-          id: 'order-1',
-          recipientId: 'recipient-1',
+          recipientId: recipient.id,
           status: 'pending',
           createdAt: new Date('2025-09-17T02:54:27.957Z'),
         },
       }),
       prisma.order.create({
         data: {
-          id: 'order-2',
-          recipientId: 'recipient-1',
+          recipientId: recipient.id,
           status: 'pending',
           createdAt: new Date('2025-09-16T21:54:07.238Z'),
         },
@@ -105,12 +113,12 @@ describe('List Orders Controller (e2e)', () => {
     expect(response.body).toEqual({
       orders: [
         expect.objectContaining({
-          id: 'order-1',
-          recipientId: 'recipient-1',
+          id: expect.any(String),
+          recipientId: expect.any(String),
           status: 'pending',
           createdAt: '2025-09-17T02:54:27.957Z',
           recipient: expect.objectContaining({
-            id: 'recipient-1',
+            id: expect.any(String),
             name: 'João Silva',
             email: 'joao.silva@example.com',
             phone: '11987654322',
@@ -123,12 +131,12 @@ describe('List Orders Controller (e2e)', () => {
           }),
         }),
         expect.objectContaining({
-          id: 'order-2',
-          recipientId: 'recipient-1',
+          id: expect.any(String),
+          recipientId: expect.any(String),
           status: 'pending',
           createdAt: '2025-09-16T21:54:07.238Z',
           recipient: expect.objectContaining({
-            id: 'recipient-1',
+            id: expect.any(String),
             name: 'João Silva',
             email: 'joao.silva@example.com',
             phone: '11987654322',
@@ -164,7 +172,6 @@ describe('List Orders Controller (e2e)', () => {
 
     const deliveryman = await prisma.user.create({
       data: {
-        id: 'deliveryman-1',
         name: 'Deliveryman User',
         cpf: '98765432100',
         password: await hash('password', 8),

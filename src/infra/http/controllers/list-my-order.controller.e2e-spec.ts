@@ -64,8 +64,20 @@ describe('List My Order Controller (e2e)', () => {
       },
     })
 
+    const userRecipient = await prisma.user.create({
+      data: {
+        name: 'Fernanda Costa',
+        cpf: '03089557061',
+        password: '1234567',
+        role: 'recipient',
+        email: 'fernanda.costa@example.com',
+        phone: '31988776655',
+      },
+    })
+
     const recipient = await prisma.recipient.create({
       data: {
+        userId: userRecipient.id,
         name: 'João Silva',
         street: 'Avenida Paulista',
         number: 123,

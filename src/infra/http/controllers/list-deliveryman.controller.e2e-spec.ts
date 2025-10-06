@@ -137,7 +137,6 @@ describe('List Deliverymen Controller (e2e)', () => {
       .set('x-user-id', 'admin-2')
       .query({ page: 0 })
 
-    // expect(response.status).toBe(HttpStatus.BAD_REQUEST)
     expect(response.body).toHaveProperty('message')
   })
 

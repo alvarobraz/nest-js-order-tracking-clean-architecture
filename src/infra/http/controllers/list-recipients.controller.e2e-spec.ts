@@ -33,8 +33,8 @@ describe('List Recipients Controller (e2e)', () => {
   })
 
   beforeEach(async () => {
-    await prisma.user.deleteMany({})
     await prisma.recipient.deleteMany({})
+    await prisma.user.deleteMany({})
   })
 
   async function seedAdminAndRecipients() {
@@ -50,8 +50,20 @@ describe('List Recipients Controller (e2e)', () => {
       },
     })
 
+    const userRecipient = await prisma.user.create({
+      data: {
+        name: 'Fernanda Costa',
+        cpf: '19332562067',
+        password: '1234567',
+        role: 'recipient',
+        email: 'fernanda.costa@example.com',
+        phone: '31988776655',
+      },
+    })
+
     const recipient1 = await prisma.recipient.create({
       data: {
+        userId: userRecipient.id,
         name: 'Ana Costa',
         street: 'Avenida Paulista',
         number: 123,
@@ -66,6 +78,7 @@ describe('List Recipients Controller (e2e)', () => {
 
     const recipient2 = await prisma.recipient.create({
       data: {
+        userId: userRecipient.id,
         name: 'Lucas Pereira',
         street: 'Rua Augusta',
         number: 456,
@@ -80,6 +93,7 @@ describe('List Recipients Controller (e2e)', () => {
 
     const recipientInactive = await prisma.recipient.create({
       data: {
+        userId: userRecipient.id,
         name: 'Inactive Recipient',
         street: 'Rua Inativa',
         number: 789,

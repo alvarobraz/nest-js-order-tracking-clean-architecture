@@ -118,9 +118,20 @@ describe('Pick Up Order Controller (e2e)', () => {
   })
 
   it('[PATCH] /order/pick-up/:orderId - should return 401 if no token is provided', async () => {
-    await prisma.recipient.create({
+    const userRecipient = await prisma.user.create({
       data: {
-        id: 'recipient-1',
+        name: 'Fernanda Costa',
+        cpf: '28274252039',
+        password: '1234567',
+        role: 'recipient',
+        email: 'fernanda.costa@example.com',
+        phone: '31988776655',
+      },
+    })
+
+    const recipient = await prisma.recipient.create({
+      data: {
+        userId: userRecipient.id,
         name: 'João Silva',
         street: 'Avenida das Américas',
         number: 456,
@@ -135,8 +146,7 @@ describe('Pick Up Order Controller (e2e)', () => {
 
     await prisma.order.create({
       data: {
-        id: 'order-1',
-        recipientId: 'recipient-1',
+        recipientId: recipient.id,
         status: 'pending',
         createdAt: new Date(),
       },

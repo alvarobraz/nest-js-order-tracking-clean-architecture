@@ -33,7 +33,7 @@ describe('List Nearby Orders Controller (e2e)', () => {
   })
 
   beforeEach(async () => {
-    await prisma.orderAttachment.deleteMany({})
+    await prisma.attachment.deleteMany({})
     await prisma.order.deleteMany({})
     await prisma.recipient.deleteMany({})
     await prisma.user.deleteMany({})
@@ -42,7 +42,6 @@ describe('List Nearby Orders Controller (e2e)', () => {
   async function seedDeliverymanAndOrder() {
     const deliveryman = await prisma.user.create({
       data: {
-        id: 'deliveryman-1',
         name: 'Deliveryman User',
         cpf: '98765432100',
         password: await hash('password', 8),
@@ -53,9 +52,20 @@ describe('List Nearby Orders Controller (e2e)', () => {
       },
     })
 
+    const userRecipient = await prisma.user.create({
+      data: {
+        name: 'Fernanda Costa',
+        cpf: '57658891070',
+        password: '1234567',
+        role: 'recipient',
+        email: 'fernanda.costa@example.com',
+        phone: '31988776655',
+      },
+    })
+
     const recipient = await prisma.recipient.create({
       data: {
-        id: 'recipient-1',
+        userId: userRecipient.id,
         name: 'Mariana Costa',
         street: 'Avenida das Américas',
         number: 456,
@@ -70,8 +80,7 @@ describe('List Nearby Orders Controller (e2e)', () => {
 
     const order = await prisma.order.create({
       data: {
-        id: 'order-1',
-        recipientId: 'recipient-1',
+        recipientId: recipient.id,
         status: 'pending',
         createdAt: new Date('2025-09-17T04:09:20.173Z'),
       },
@@ -95,12 +104,12 @@ describe('List Nearby Orders Controller (e2e)', () => {
     expect(response.body).toEqual({
       orders: [
         expect.objectContaining({
-          id: 'order-1',
-          recipientId: 'recipient-1',
+          id: expect.any(String),
+          recipientId: expect.any(String),
           status: 'pending',
           createdAt: '2025-09-17T04:09:20.173Z',
           recipient: expect.objectContaining({
-            id: 'recipient-1',
+            id: expect.any(String),
             name: 'Mariana Costa',
             email: 'mariana.costa@example.com',
             phone: '21999887766',
@@ -172,7 +181,7 @@ describe('List Nearby Orders Controller (e2e)', () => {
   })
 
   afterAll(async () => {
-    await prisma.orderAttachment.deleteMany({})
+    await prisma.attachment.deleteMany({})
     await prisma.order.deleteMany({})
     await prisma.recipient.deleteMany({})
     await prisma.user.deleteMany({})

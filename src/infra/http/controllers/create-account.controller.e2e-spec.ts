@@ -73,7 +73,7 @@ describe('Create Account Controller (e2e)', () => {
     })
   })
 
-  it('[POST] /accounts - should return 409 user is not an active admin', async () => {
+  it('[POST] /accounts - should return 400 user is not an active admin', async () => {
     const notAdmin = await prisma.user.create({
       data: {
         name: 'John Doe',
@@ -98,8 +98,10 @@ describe('Create Account Controller (e2e)', () => {
         phone: '11987654321',
       })
 
-    expect(response.statusCode).toBe(HttpStatus.CONFLICT)
-    expect(response.body.message).toContain('User is not admin.')
+    expect(response.statusCode).toBe(HttpStatus.BAD_REQUEST)
+    expect(response.body.message).toContain(
+      'Only active admins can create deliverymen',
+    )
   })
 
   it('[POST] /accounts - should return 409 if cpf is already in use', async () => {

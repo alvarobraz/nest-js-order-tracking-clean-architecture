@@ -31,7 +31,7 @@ describe('Create User Recipient Controller (e2e)', () => {
       .post('/user-recipient')
       .send({
         name: 'Mariana Oliveira',
-        cpf: '98765432100',
+        cpf: '49265649046',
         password: 'Abcd1234@',
         email: 'mariana.oliveira@example.com',
         phone: '41999887766',
@@ -39,11 +39,11 @@ describe('Create User Recipient Controller (e2e)', () => {
 
     expect(response.statusCode).toBe(HttpStatus.CREATED)
 
-    const userOnDatabase = await usersRepository.findByCpf('98765432100')
+    const userOnDatabase = await usersRepository.findByCpf('49265649046')
     expect(userOnDatabase).toBeTruthy()
     expect(userOnDatabase).toMatchObject({
       name: 'Mariana Oliveira',
-      cpf: '98765432100',
+      cpf: '49265649046',
       email: 'mariana.oliveira@example.com',
       phone: '41999887766',
       role: 'recipient',
@@ -55,7 +55,7 @@ describe('Create User Recipient Controller (e2e)', () => {
     await prisma.user.create({
       data: {
         name: 'Existing User',
-        cpf: '98765432100',
+        cpf: '49265649046',
         password: await hash('Abcd1234@', 8),
         role: 'recipient',
         email: 'existing@example.com',
@@ -67,7 +67,7 @@ describe('Create User Recipient Controller (e2e)', () => {
       .post('/user-recipient')
       .send({
         name: 'Mariana Oliveira',
-        cpf: '98765432100',
+        cpf: '49265649046',
         password: 'Abcd1234@',
         email: 'mariana.oliveira@example.com',
         phone: '41999887766',
@@ -95,7 +95,7 @@ describe('Create User Recipient Controller (e2e)', () => {
       .post('/user-recipient')
       .send({
         name: 'Mariana Oliveira',
-        cpf: '98765432100',
+        cpf: '49265649046',
         password: 'Abcd1234@',
         email: 'mariana.oliveira@example.com',
         phone: '41999887766',

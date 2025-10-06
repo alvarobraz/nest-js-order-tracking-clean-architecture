@@ -52,9 +52,20 @@ describe('Delete Order Controller (e2e)', () => {
       },
     })
 
+    const userRecipient = await prisma.user.create({
+      data: {
+        name: 'Fernanda Costa',
+        cpf: '98765432100',
+        password: '1234567',
+        role: 'recipient',
+        email: 'fernanda.costa@example.com',
+        phone: '31988776655',
+      },
+    })
+
     const recipient = await prisma.recipient.create({
       data: {
-        id: 'recipient-1',
+        userId: userRecipient.id,
         name: 'João Silva',
         street: 'Avenida Paulista',
         number: 123,
@@ -70,7 +81,7 @@ describe('Delete Order Controller (e2e)', () => {
     const order = await prisma.order.create({
       data: {
         id: 'order-1',
-        recipientId: 'recipient-1',
+        recipientId: recipient.id,
         status: 'pending',
         createdAt: new Date(),
       },
@@ -117,9 +128,8 @@ describe('Delete Order Controller (e2e)', () => {
 
     const deliveryman = await prisma.user.create({
       data: {
-        id: 'deliveryman-1',
         name: 'Deliveryman User',
-        cpf: '98765432100',
+        cpf: '98765432800',
         password: await hash('password', 8),
         role: 'deliveryman',
         email: 'deliveryman@example.com',
