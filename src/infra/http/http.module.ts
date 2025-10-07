@@ -50,6 +50,9 @@ import { ListMyOrderController } from './controllers/list-my-order.controller'
 import { ListMyOrderUseCase } from '@/domain/order-control/application/use-cases/list-my-order'
 import { CreateUserRecipientController } from './controllers/create-user-recipient.controller'
 import { CreateUserRecipientUseCase } from '@/domain/order-control/application/use-cases/create-user-recipient'
+import { OnOrderCreated } from '@/domain/notification/application/subscribers/on-order-created'
+import { SendNotificationUseCase } from '@/domain/notification/application/use-cases/send-notification'
+import { PrismaNotificationsRepository } from '../database/prisma/repositories/prisma-notifications-repository'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule, StorageModule],
@@ -99,6 +102,12 @@ import { CreateUserRecipientUseCase } from '@/domain/order-control/application/u
     MarkOrderAsReturnedUseCase,
     ListUserDeliveriesUseCase,
     ListMyOrderUseCase,
+    OnOrderCreated,
+    SendNotificationUseCase,
+    {
+      provide: 'NotificationsRepository',
+      useClass: PrismaNotificationsRepository,
+    },
     {
       provide: 'OrdersRepository',
       useClass: PrismaOrdersRepository,

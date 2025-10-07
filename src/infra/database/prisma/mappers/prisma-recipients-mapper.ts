@@ -26,7 +26,7 @@ export class PrismaRecipientMapper {
   static toPrisma(recipient: Recipient): PrismaRecipient {
     return {
       id: recipient.id.toString(),
-      userId: recipient.userId,
+      userId: recipient.userId!,
       name: recipient.name,
       street: recipient.street,
       number: Number(recipient.number),

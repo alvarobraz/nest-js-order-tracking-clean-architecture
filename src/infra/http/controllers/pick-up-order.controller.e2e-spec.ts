@@ -26,6 +26,7 @@ describe('Pick Up Order Controller (e2e)', () => {
   beforeEach(async () => {
     await prisma.order.deleteMany({})
     await prisma.recipient.deleteMany({})
+    await prisma.notification.deleteMany({})
     await prisma.user.deleteMany({})
   })
 
@@ -408,6 +409,7 @@ describe('Pick Up Order Controller (e2e)', () => {
   afterAll(async () => {
     await prisma.order.deleteMany({})
     await prisma.recipient.deleteMany({})
+    await prisma.notification.deleteMany({})
     await prisma.user.deleteMany({})
     await app.close()
   })

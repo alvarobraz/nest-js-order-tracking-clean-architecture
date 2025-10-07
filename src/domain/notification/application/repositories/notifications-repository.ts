@@ -1,7 +1,9 @@
+import { Injectable } from '@nestjs/common'
 import { Notification } from '../../enterprise/entities/notification'
 
-export interface NotificationsRepository {
-  findById(id: string): Promise<Notification | null>
-  create(notification: Notification): Promise<void>
-  save(notification: Notification): Promise<void>
+@Injectable()
+export abstract class NotificationsRepository {
+  abstract findById(id: string): Promise<Notification | null>
+  abstract create(notification: Notification): Promise<void>
+  abstract save(notification: Notification): Promise<void>
 }

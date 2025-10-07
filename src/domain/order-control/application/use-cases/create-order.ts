@@ -8,6 +8,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { OrdersRepository } from '@/domain/order-control/application/repositories/orders-repository'
 import { UsersRepository } from '@/domain/order-control/application/repositories/users-repository'
 import { RecipientsRepository } from '@/domain/order-control/application/repositories/recipients-repository'
+import { DomainEvents } from '@/core/events/domain-events'
 
 interface CreateOrderUseCaseRequest {
   adminId: string
@@ -51,6 +52,9 @@ export class CreateOrderUseCase {
     })
 
     await this.ordersRepository.create(order)
+
+    DomainEvents.markAggregateForDispatch(order)
+    DomainEvents.dispatchEventsForAggregate(order.id)
 
     return right({
       order,
