@@ -8,6 +8,7 @@ import { OrderMustBePendingToBePickedUpError } from './errors/order-must-be-pend
 import { Injectable } from '@nestjs/common'
 import { Order } from '../../enterprise/entities/order'
 import { Recipient } from '../../enterprise/entities/recipient'
+import { DomainEvents } from '@/core/events/domain-events'
 
 interface PickUpOrderUseCaseRequest {
   deliverymanId: string
@@ -56,6 +57,9 @@ export class PickUpOrderUseCase {
     order.status = 'picked_up'
 
     await this.ordersRepository.save(order)
+
+    DomainEvents.markAggregateForDispatch(order)
+    DomainEvents.dispatchEventsForAggregate(order.id)
 
     return right({ order })
   }

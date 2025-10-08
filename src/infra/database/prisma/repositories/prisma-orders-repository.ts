@@ -50,16 +50,6 @@ export class PrismaOrdersRepository implements OrdersRepository {
   async save(order: Order): Promise<void> {
     const data = PrismaOrdersMapper.toPrisma(order)
 
-    // const updatedOrder = await this.prisma.order.update({
-    //   where: {
-    //     id: order.id.toString(),
-    //   },
-    //   data,
-    //   include: { attachments: true }, // Incluir anexos, se necessário
-    // })
-
-    // const domainOrder = PrismaOrdersMapper.toDomain(updatedOrder)
-    // return domainOrder
     await Promise.all([
       this.prisma.order.update({
         where: {

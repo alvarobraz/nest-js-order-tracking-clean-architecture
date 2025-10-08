@@ -53,6 +53,7 @@ import { CreateUserRecipientUseCase } from '@/domain/order-control/application/u
 import { OnOrderCreated } from '@/domain/notification/application/subscribers/on-order-created'
 import { SendNotificationUseCase } from '@/domain/notification/application/use-cases/send-notification'
 import { PrismaNotificationsRepository } from '../database/prisma/repositories/prisma-notifications-repository'
+import { OnOrderPickUp } from '@/domain/notification/application/subscribers/or-order-picked-up'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule, StorageModule],
@@ -103,6 +104,7 @@ import { PrismaNotificationsRepository } from '../database/prisma/repositories/p
     ListUserDeliveriesUseCase,
     ListMyOrderUseCase,
     OnOrderCreated,
+    OnOrderPickUp,
     SendNotificationUseCase,
     {
       provide: 'NotificationsRepository',

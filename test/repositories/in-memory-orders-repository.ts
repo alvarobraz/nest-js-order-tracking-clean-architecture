@@ -10,7 +10,7 @@ export class InMemoryOrdersRepository implements OrdersRepository {
 
   constructor(private orderAttachmentsRepository: OrderAttachmentsRepository) {}
 
-  async create(order: Order & { recipient?: Recipient }): Promise<void> {
+  async create(order: Order & { recipient?: Recipient }): Promise<Order> {
     this.items.push(order)
 
     await this.orderAttachmentsRepository.createMany(
@@ -18,6 +18,8 @@ export class InMemoryOrdersRepository implements OrdersRepository {
     )
 
     DomainEvents.dispatchEventsForAggregate(order.id)
+
+    return order
   }
 
   async findById(
