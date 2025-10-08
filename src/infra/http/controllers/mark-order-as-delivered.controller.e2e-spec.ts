@@ -24,6 +24,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
   })
 
   beforeEach(async () => {
+    await prisma.notification.deleteMany({})
     await prisma.attachment.deleteMany({})
     await prisma.order.deleteMany({})
     await prisma.recipient.deleteMany({})
@@ -654,6 +655,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
   })
 
   afterAll(async () => {
+    await prisma.notification.deleteMany({})
     await prisma.attachment.deleteMany({})
     await prisma.order.deleteMany({})
     await prisma.recipient.deleteMany({})

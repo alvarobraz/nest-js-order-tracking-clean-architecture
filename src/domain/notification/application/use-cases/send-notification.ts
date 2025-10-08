@@ -26,7 +26,6 @@ export class SendNotificationUseCase {
     title,
     content,
   }: SendNotificationUseCaseRequest): Promise<SendNotificationUseCaseResponse> {
-    console.log(`Creating notification: ${title} for recipient ${recipientId}`) // Log temporário
     const notification = Notification.create({
       recipientId: new UniqueEntityID(recipientId),
       title,

@@ -6,6 +6,7 @@ import { Injectable } from '@nestjs/common'
 import { OrdersRepository } from '@/domain/order-control/application/repositories/orders-repository'
 import { Recipient } from '@/domain/order-control/enterprise/entities/recipient'
 import { OrderAttachmentsRepository } from '@/domain/order-control/application/repositories/orders-attachments-repository'
+import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 
 @Injectable()
 export class PrismaOrdersRepository implements OrdersRepository {
@@ -14,16 +15,21 @@ export class PrismaOrdersRepository implements OrdersRepository {
     private orderAttachmentsRepository: OrderAttachmentsRepository,
   ) {}
 
-  async create(orders: Order): Promise<void> {
-    const data = PrismaOrdersMapper.toPrisma(orders)
+  async create(order: Order): Promise<Order> {
+    const data = PrismaOrdersMapper.toPrisma(order)
 
-    await this.prisma.order.create({
+    const createdOrder = await this.prisma.order.create({
       data,
+      include: { recipient: true, attachments: true },
     })
 
     await this.orderAttachmentsRepository.createMany(
-      orders.deliveryPhoto.getItems(),
+      order.deliveryPhoto.getItems(),
     )
+
+    Reflect.set(order, '_id', new UniqueEntityID(createdOrder.id))
+
+    return order
   }
 
   async findById(id: string): Promise<Order | null> {
