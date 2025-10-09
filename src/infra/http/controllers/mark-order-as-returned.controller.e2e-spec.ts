@@ -25,13 +25,12 @@ describe('Mark Order As Returned Controller (e2e)', () => {
 
   beforeEach(async () => {
     await prisma.notification.deleteMany({})
-    await prisma.attachment.deleteMany({})
     await prisma.order.deleteMany({})
     await prisma.recipient.deleteMany({})
     await prisma.user.deleteMany({})
   })
 
-  it('[PATCH] /order/mark-as-returned/:orderId - should mark an order as returned if admin is valid and active', async () => {
+  it('[PATCH] /order/mark-as-returned/:orderId - should mark an order as returned if deliveryman is valid and active', async () => {
     const admin = await prisma.user.create({
       data: {
         name: 'John Doe',
@@ -44,13 +43,25 @@ describe('Mark Order As Returned Controller (e2e)', () => {
       },
     })
 
-    const accessToken = jwt.sign({ sub: admin.id })
+    const recipientUser = await prisma.user.create({
+      data: {
+        name: 'João Silva',
+        cpf: '99988877766',
+        password: await hash('123456', 8),
+        role: 'recipient',
+        email: 'joao.silva@example.com',
+        phone: '11977776666',
+        status: 'active',
+      },
+    })
+
+    const adminAccessToken = jwt.sign({ sub: admin.id })
 
     const recipientResponse = await request(app.getHttpServer())
       .post('/recipients')
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
       .send({
-        userId: admin.id,
+        userId: recipientUser.id,
         name: 'João Silva',
         street: 'Avenida Paulista',
         number: 123,
@@ -70,7 +81,7 @@ describe('Mark Order As Returned Controller (e2e)', () => {
 
     const orderResponse = await request(app.getHttpServer())
       .post('/orders')
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
       .send({
         id: admin.id,
         recipientId: recipientOnDatabase?.id,
@@ -80,17 +91,41 @@ describe('Mark Order As Returned Controller (e2e)', () => {
 
     const ordersResponse = await request(app.getHttpServer())
       .get('/orders?page=1')
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
       .set('x-user-id', admin.id)
+
+    const deliveryman = await prisma.user.create({
+      data: {
+        name: 'Jane Doe',
+        cpf: '12345678901',
+        password: await hash('password123', 8),
+        role: 'deliveryman',
+        email: 'jane.doe@example.com',
+        phone: '21999887766',
+        status: 'active',
+      },
+    })
+
+    const token = jwt.sign({ sub: deliveryman.id })
+
+    const pickUpResponse = await request(app.getHttpServer())
+      .patch(`/order/pick-up/${ordersResponse.body.orders[0].id}`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(pickUpResponse.status).toBe(HttpStatus.OK)
 
     const response = await request(app.getHttpServer())
       .patch(`/order/mark-as-returned/${ordersResponse.body.orders[0].id}`)
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
 
     expect(response.status).toBe(HttpStatus.OK)
+    expect(response.body.order).toBeDefined()
     expect(response.body.order).toEqual(
       expect.objectContaining({
         id: ordersResponse.body.orders[0].id,
+        deliverymanId: deliveryman.id,
+        recipientId: recipientOnDatabase?.id,
         status: 'returned',
         recipient: expect.objectContaining({
           name: 'João Silva',
@@ -100,17 +135,32 @@ describe('Mark Order As Returned Controller (e2e)', () => {
 
     const orderInDb = await prisma.order.findUnique({
       where: { id: ordersResponse.body.orders[0].id },
+      include: { recipient: true },
     })
 
     expect(orderInDb).toEqual(
       expect.objectContaining({
         id: ordersResponse.body.orders[0].id,
+        deliverymanId: deliveryman.id,
+        recipientId: recipientOnDatabase?.id,
         status: 'returned',
       }),
     )
+
+    const notifications = await prisma.notification.findMany({
+      where: { recipientId: recipientUser.id },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    expect(notifications).toHaveLength(3)
+    expect(notifications[0]).toMatchObject({
+      recipientId: recipientUser.id,
+      title: `Pedido com número "${ordersResponse.body.orders[0].id}" retornado`,
+      content: `O pedido com número "${ordersResponse.body.orders[0].id}" foi retornado e está com status de "returned"`,
+    })
   })
 
-  it('[PATCH] /order/mark-as-returned/:orderId - should mark an order as returned if deliveryman is active and assigned', async () => {
+  it('[PATCH] /order/mark-as-returned/:orderId - should mark an order as returned if user is admin', async () => {
     const admin = await prisma.user.create({
       data: {
         name: 'John Doe',
@@ -119,16 +169,29 @@ describe('Mark Order As Returned Controller (e2e)', () => {
         role: 'admin',
         email: 'johndoe@example.com',
         phone: '41997458547',
+        status: 'active',
       },
     })
 
-    const accessToken = jwt.sign({ sub: admin.id })
+    const recipientUser = await prisma.user.create({
+      data: {
+        name: 'João Silva',
+        cpf: '99988877766',
+        password: await hash('123456', 8),
+        role: 'recipient',
+        email: 'joao.silva@example.com',
+        phone: '11977776666',
+        status: 'active',
+      },
+    })
 
-    const recipient = await request(app.getHttpServer())
+    const adminAccessToken = jwt.sign({ sub: admin.id })
+
+    const recipientResponse = await request(app.getHttpServer())
       .post('/recipients')
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
       .send({
-        userId: admin.id,
+        userId: recipientUser.id,
         name: 'João Silva',
         street: 'Avenida Paulista',
         number: 123,
@@ -137,72 +200,42 @@ describe('Mark Order As Returned Controller (e2e)', () => {
         state: 'SP',
         zipCode: 12345678,
         phone: '11987654321',
-        email: 'joao.silva@email.com',
+        email: 'joao.silva@example.com',
       })
 
-    expect(recipient.statusCode).toBe(201)
+    expect(recipientResponse.statusCode).toBe(201)
 
     const recipientOnDatabase = await prisma.recipient.findFirst({
-      where: {
-        name: 'João Silva',
-      },
+      where: { name: 'João Silva' },
     })
 
-    const order = await request(app.getHttpServer())
+    const orderResponse = await request(app.getHttpServer())
       .post('/orders')
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
       .send({
         id: admin.id,
         recipientId: recipientOnDatabase?.id,
       })
 
-    expect(order.statusCode).toBe(201)
-
-    const response = await request(app.getHttpServer())
-      .get('/orders?page=1')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .set('x-user-id', admin.id)
-
-    const deliveryman = await prisma.user.create({
-      data: {
-        name: 'John Doe',
-        cpf: '12345678901',
-        password: await hash('password123', 8),
-        role: 'deliveryman',
-        email: 'john.doe@example.com',
-        phone: '21999887766',
-        status: 'active',
-      },
-    })
-
-    const token = jwt.sign({ sub: deliveryman.id })
-
-    const responsePickUpOrder = await request(app.getHttpServer())
-      .patch(`/order/pick-up/${response.body.orders[0].id}`)
-      .set('Authorization', `Bearer ${token}`)
-
-    expect(responsePickUpOrder.status).toBe(HttpStatus.OK)
-    expect(responsePickUpOrder.body.order).toBeDefined()
-
-    expect(responsePickUpOrder.body.order.deliverymanId).toBe(deliveryman.id)
-    expect(responsePickUpOrder.body.order.recipient.name).toBe('João Silva')
-    expect(responsePickUpOrder.body.order.status).toBe('picked_up')
+    expect(orderResponse.statusCode).toBe(201)
 
     const ordersResponse = await request(app.getHttpServer())
       .get('/orders?page=1')
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
       .set('x-user-id', admin.id)
 
-    const responseReturned = await request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .patch(`/order/mark-as-returned/${ordersResponse.body.orders[0].id}`)
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send()
 
-    expect(responseReturned.status).toBe(HttpStatus.OK)
-    expect(responseReturned.body.order).toEqual(
+    expect(response.status).toBe(HttpStatus.OK)
+    expect(response.body.order).toBeDefined()
+    expect(response.body.order).toEqual(
       expect.objectContaining({
         id: ordersResponse.body.orders[0].id,
+        recipientId: recipientOnDatabase?.id,
         status: 'returned',
-        deliverymanId: deliveryman.id,
         recipient: expect.objectContaining({
           name: 'João Silva',
         }),
@@ -211,23 +244,195 @@ describe('Mark Order As Returned Controller (e2e)', () => {
 
     const orderInDb = await prisma.order.findUnique({
       where: { id: ordersResponse.body.orders[0].id },
+      include: { recipient: true },
     })
 
     expect(orderInDb).toEqual(
       expect.objectContaining({
         id: ordersResponse.body.orders[0].id,
+        recipientId: recipientOnDatabase?.id,
         status: 'returned',
-        deliverymanId: deliveryman.id,
       }),
     )
+
+    const notifications = await prisma.notification.findMany({
+      where: { recipientId: recipientUser.id },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    expect(notifications).toHaveLength(2)
+    expect(notifications[0]).toMatchObject({
+      recipientId: recipientUser.id,
+      title: `Pedido com número "${ordersResponse.body.orders[0].id}" retornado`,
+      content: `O pedido com número "${ordersResponse.body.orders[0].id}" foi retornado e está com status de "returned"`,
+    })
   })
 
   it('[PATCH] /order/mark-as-returned/:orderId - should return 401 if no token is provided', async () => {
-    const response = await request(app.getHttpServer()).patch(
-      '/order/mark-as-returned/order-1',
-    )
+    const admin = await prisma.user.create({
+      data: {
+        name: 'John Doe',
+        cpf: '12365478932',
+        password: await hash('123456', 8),
+        role: 'admin',
+        email: 'johndoe@example.com',
+        phone: '41997458547',
+        status: 'active',
+      },
+    })
+
+    const recipientUser = await prisma.user.create({
+      data: {
+        name: 'João Silva',
+        cpf: '99988877766',
+        password: await hash('123456', 8),
+        role: 'recipient',
+        email: 'joao.silva@example.com',
+        phone: '11977776666',
+        status: 'active',
+      },
+    })
+
+    const adminAccessToken = jwt.sign({ sub: admin.id })
+
+    const recipientResponse = await request(app.getHttpServer())
+      .post('/recipients')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send({
+        userId: recipientUser.id,
+        name: 'João Silva',
+        street: 'Avenida Paulista',
+        number: 123,
+        neighborhood: 'Bela Vista',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: 12345678,
+        phone: '11987654321',
+        email: 'joao.silva@example.com',
+      })
+
+    expect(recipientResponse.statusCode).toBe(201)
+
+    const recipientOnDatabase = await prisma.recipient.findFirst({
+      where: { name: 'João Silva' },
+    })
+
+    const orderResponse = await request(app.getHttpServer())
+      .post('/orders')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send({
+        id: admin.id,
+        recipientId: recipientOnDatabase?.id,
+      })
+
+    expect(orderResponse.statusCode).toBe(201)
+
+    const ordersResponse = await request(app.getHttpServer())
+      .get('/orders?page=1')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .set('x-user-id', admin.id)
+
+    const response = await request(app.getHttpServer())
+      .patch(`/order/mark-as-returned/${ordersResponse.body.orders[0].id}`)
+      .set('Authorization', `Bearer `)
+      .send()
 
     expect(response.status).toBe(HttpStatus.UNAUTHORIZED)
+  })
+
+  it('[PATCH] /order/mark-as-returned/:orderId - should return 403 if user is not active', async () => {
+    const admin = await prisma.user.create({
+      data: {
+        name: 'John Doe',
+        cpf: '12365478932',
+        password: await hash('123456', 8),
+        role: 'admin',
+        email: 'johndoe@example.com',
+        phone: '41997458547',
+        status: 'active',
+      },
+    })
+
+    const recipientUser = await prisma.user.create({
+      data: {
+        name: 'João Silva',
+        cpf: '99988877766',
+        password: await hash('123456', 8),
+        role: 'recipient',
+        email: 'joao.silva@example.com',
+        phone: '11977776666',
+        status: 'active',
+      },
+    })
+
+    const adminAccessToken = jwt.sign({ sub: admin.id })
+
+    const recipientResponse = await request(app.getHttpServer())
+      .post('/recipients')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send({
+        userId: recipientUser.id,
+        name: 'João Silva',
+        street: 'Avenida Paulista',
+        number: 123,
+        neighborhood: 'Bela Vista',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: 12345678,
+        phone: '11987654321',
+        email: 'joao.silva@example.com',
+      })
+
+    expect(recipientResponse.statusCode).toBe(201)
+
+    const recipientOnDatabase = await prisma.recipient.findFirst({
+      where: { name: 'João Silva' },
+    })
+
+    const orderResponse = await request(app.getHttpServer())
+      .post('/orders')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send({
+        id: admin.id,
+        recipientId: recipientOnDatabase?.id,
+      })
+
+    expect(orderResponse.statusCode).toBe(201)
+
+    const ordersResponse = await request(app.getHttpServer())
+      .get('/orders?page=1')
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .set('x-user-id', admin.id)
+
+    const inactiveDeliveryman = await prisma.user.create({
+      data: {
+        name: 'Jane Doe',
+        cpf: '12345678901',
+        password: await hash('password123', 8),
+        role: 'deliveryman',
+        email: 'jane.doe@example.com',
+        phone: '21999887766',
+        status: 'inactive',
+      },
+    })
+
+    const token = jwt.sign({ sub: inactiveDeliveryman.id })
+
+    const pickUpResponse = await request(app.getHttpServer())
+      .patch(`/order/pick-up/${ordersResponse.body.orders[0].id}`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(pickUpResponse.status).toBe(HttpStatus.FORBIDDEN)
+
+    const response = await request(app.getHttpServer())
+      .patch(`/order/mark-as-returned/${ordersResponse.body.orders[0].id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send()
+
+    expect(response.status).toBe(HttpStatus.FORBIDDEN)
+    expect(response.body.message).toBe(
+      'Only active users can mark orders as returned',
+    )
   })
 
   it('[PATCH] /order/mark-as-returned/:orderId - should return 403 if deliveryman is not assigned to the order', async () => {
@@ -239,16 +444,29 @@ describe('Mark Order As Returned Controller (e2e)', () => {
         role: 'admin',
         email: 'johndoe@example.com',
         phone: '41997458547',
+        status: 'active',
       },
     })
 
-    const accessToken = jwt.sign({ sub: admin.id })
+    const recipientUser = await prisma.user.create({
+      data: {
+        name: 'João Silva',
+        cpf: '99988877766',
+        password: await hash('123456', 8),
+        role: 'recipient',
+        email: 'joao.silva@example.com',
+        phone: '11977776666',
+        status: 'active',
+      },
+    })
 
-    const recipient = await request(app.getHttpServer())
+    const adminAccessToken = jwt.sign({ sub: admin.id })
+
+    const recipientResponse = await request(app.getHttpServer())
       .post('/recipients')
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
       .send({
-        userId: admin.id,
+        userId: recipientUser.id,
         name: 'João Silva',
         street: 'Avenida Paulista',
         number: 123,
@@ -257,78 +475,70 @@ describe('Mark Order As Returned Controller (e2e)', () => {
         state: 'SP',
         zipCode: 12345678,
         phone: '11987654321',
-        email: 'joao.silva@email.com',
+        email: 'joao.silva@example.com',
       })
 
-    expect(recipient.statusCode).toBe(201)
+    expect(recipientResponse.statusCode).toBe(201)
 
     const recipientOnDatabase = await prisma.recipient.findFirst({
-      where: {
-        name: 'João Silva',
-      },
+      where: { name: 'João Silva' },
     })
 
-    const order = await request(app.getHttpServer())
+    const orderResponse = await request(app.getHttpServer())
       .post('/orders')
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
       .send({
         id: admin.id,
         recipientId: recipientOnDatabase?.id,
       })
 
-    expect(order.statusCode).toBe(201)
+    expect(orderResponse.statusCode).toBe(201)
 
-    const response = await request(app.getHttpServer())
+    const ordersResponse = await request(app.getHttpServer())
       .get('/orders?page=1')
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
       .set('x-user-id', admin.id)
 
     const deliveryman = await prisma.user.create({
       data: {
-        name: 'John Doe',
+        name: 'Jane Doe',
         cpf: '12345678901',
         password: await hash('password123', 8),
         role: 'deliveryman',
-        email: 'john.doe@example.com',
+        email: 'jane.doe@example.com',
         phone: '21999887766',
         status: 'active',
       },
     })
 
-    const token = jwt.sign({ sub: deliveryman.id })
-
     const deliveryman2 = await prisma.user.create({
       data: {
-        name: 'John Three',
+        name: 'Jane Three',
         cpf: '13345678901',
         password: await hash('password123', 8),
         role: 'deliveryman',
-        email: 'john.three@example.com',
+        email: 'jane.three@example.com',
         phone: '22999887766',
         status: 'active',
       },
     })
 
+    const token = jwt.sign({ sub: deliveryman.id })
     const token2 = jwt.sign({ sub: deliveryman2.id })
 
-    const responsePickUpOrder = await request(app.getHttpServer())
-      .patch(`/order/pick-up/${response.body.orders[0].id}`)
+    const pickUpResponse = await request(app.getHttpServer())
+      .patch(`/order/pick-up/${ordersResponse.body.orders[0].id}`)
       .set('Authorization', `Bearer ${token}`)
 
-    expect(responsePickUpOrder.status).toBe(HttpStatus.OK)
-    expect(responsePickUpOrder.body.order).toBeDefined()
+    expect(pickUpResponse.status).toBe(HttpStatus.OK)
 
-    const ordersResponse = await request(app.getHttpServer())
-      .get('/orders?page=1')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .set('x-user-id', admin.id)
-
-    const responseReturned = await request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .patch(`/order/mark-as-returned/${ordersResponse.body.orders[0].id}`)
       .set('Authorization', `Bearer ${token2}`)
+      .send()
 
-    expect(responseReturned.status).toBe(HttpStatus.FORBIDDEN)
-    expect(responseReturned.body.message).toBe(
+    expect(response.status).toBe(HttpStatus.FORBIDDEN)
+    expect(response.body.message).toBe(
       'Only the assigned deliveryman or an admin can mark the order as returned',
     )
   })
@@ -346,11 +556,12 @@ describe('Mark Order As Returned Controller (e2e)', () => {
       },
     })
 
-    const token = jwt.sign({ sub: admin.id })
+    const adminAccessToken = jwt.sign({ sub: admin.id })
 
     const response = await request(app.getHttpServer())
-      .patch('/order/mark-as-returned/a2f22a5c-e3f4-4b79-8d0c-3045c635d2a4')
-      .set('Authorization', `Bearer ${token}`)
+      .patch(`/order/mark-as-returned/0195f49b-fa57-4697-b620-15eddfd94411`)
+      .set('Authorization', `Bearer ${adminAccessToken}`)
+      .send()
 
     expect(response.status).toBe(HttpStatus.BAD_REQUEST)
     expect(response.body.message).toBe('Order not found')
@@ -358,7 +569,6 @@ describe('Mark Order As Returned Controller (e2e)', () => {
 
   afterAll(async () => {
     await prisma.notification.deleteMany({})
-    await prisma.attachment.deleteMany({})
     await prisma.order.deleteMany({})
     await prisma.recipient.deleteMany({})
     await prisma.user.deleteMany({})

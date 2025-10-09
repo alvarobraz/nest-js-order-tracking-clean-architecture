@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { MarkOrderAsDeliveredUseCase } from './mark-order-as-delivered'
+import { DeliveredOrderUseCase } from './delivered-order'
 import { InMemoryOrdersRepository } from 'test/repositories/in-memory-orders-repository'
 import { InMemoryUsersRepository } from 'test/repositories/in-memory-users-repository'
 import { InMemoryOrderAttachmentsRepository } from 'test/repositories/in-memory-order-attachments-repository'
@@ -17,7 +17,7 @@ import { OrderAttachmentList } from '../../enterprise/entities/order-attachment-
 let inMemoryOrdersRepository: InMemoryOrdersRepository
 let inMemoryUsersRepository: InMemoryUsersRepository
 let inMemoryOrderAttachmentsRepository: InMemoryOrderAttachmentsRepository
-let sut: MarkOrderAsDeliveredUseCase
+let sut: DeliveredOrderUseCase
 
 describe('Mark Order As Delivered', () => {
   beforeEach(() => {
@@ -30,7 +30,7 @@ describe('Mark Order As Delivered', () => {
     inMemoryUsersRepository = new InMemoryUsersRepository()
     inMemoryOrderAttachmentsRepository =
       new InMemoryOrderAttachmentsRepository()
-    sut = new MarkOrderAsDeliveredUseCase(
+    sut = new DeliveredOrderUseCase(
       inMemoryOrdersRepository,
       inMemoryOrderAttachmentsRepository,
       inMemoryUsersRepository,

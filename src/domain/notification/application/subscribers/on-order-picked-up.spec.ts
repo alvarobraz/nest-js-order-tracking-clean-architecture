@@ -13,7 +13,7 @@ import { InMemoryOrderAttachmentsRepository } from 'test/repositories/in-memory-
 
 import { SendNotificationUseCase } from '@/domain/notification/application/use-cases/send-notification'
 import { PickUpOrderUseCase } from '@/domain/order-control/application/use-cases/pick-up-order'
-import { OnOrderPickUp } from '@/domain/notification/application/subscribers/or-order-picked-up'
+import { OnOrderPickUp } from '@/domain/notification/application/subscribers/on-order-picked-up'
 
 let inMemoryOrdersRepository: InMemoryOrdersRepository
 let inMemoryUsersRepository: InMemoryUsersRepository

@@ -11,7 +11,7 @@ import {
 import { JwtAuthGuard } from '@/infra/auth/jwt-auth.guard'
 import { CurrentUser } from '@/infra/auth/current-user-decorator'
 import type { UserPayload } from '@/infra/auth/jwt.strategy'
-import { MarkOrderAsDeliveredUseCase } from '@/domain/order-control/application/use-cases/mark-order-as-delivered'
+import { DeliveredOrderUseCase } from '@/domain/order-control/application/use-cases/delivered-order'
 import { OrderPresenter } from '../presenters/order-presenter'
 import { OrderNotFoundError } from '@/domain/order-control/application/use-cases/errors/order-not-found-error'
 import { OnlyActiveDeliverymenCanMarkOrdersAsDeliveredError } from '@/domain/order-control/application/use-cases/errors/only-active-deliverymen-can-mark-orders-as-delivered-error'
@@ -35,10 +35,10 @@ const bodyValidationPipe = new ZodValidationPipe(bodySchema)
 type OrderIdParamSchema = z.infer<typeof orderIdParamSchema>
 type BodySchema = z.infer<typeof bodySchema>
 
-@Controller('/order/mark-as-delivered/:orderId')
+@Controller('/order/delivered-order/:orderId')
 @UseGuards(JwtAuthGuard)
-export class MarkOrderAsDeliveredController {
-  constructor(private markOrderAsDelivered: MarkOrderAsDeliveredUseCase) {}
+export class DeliveredOrderUseCaseController {
+  constructor(private deliveredOrderUseCase: DeliveredOrderUseCase) {}
 
   @Put()
   async handle(
@@ -48,7 +48,7 @@ export class MarkOrderAsDeliveredController {
   ) {
     const { deliveryPhotoIds } = body
 
-    const result = await this.markOrderAsDelivered.execute({
+    const result = await this.deliveredOrderUseCase.execute({
       deliverymanId: user.sub,
       orderId,
       deliveryPhotoIds,

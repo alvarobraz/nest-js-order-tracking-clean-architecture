@@ -24,14 +24,14 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
   })
 
   beforeEach(async () => {
-    await prisma.notification.deleteMany({})
     await prisma.attachment.deleteMany({})
     await prisma.order.deleteMany({})
+    await prisma.notification.deleteMany({})
     await prisma.recipient.deleteMany({})
     await prisma.user.deleteMany({})
   })
 
-  it('[PUT] /order/mark-as-delivered/:orderId - should mark an order as delivered if deliveryman is valid and active', async () => {
+  it('[PUT] /order/delivered-order/:orderId - should mark an order as delivered if deliveryman is valid and active', async () => {
     const admin = await prisma.user.create({
       data: {
         name: 'John Doe',
@@ -117,7 +117,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
     })
 
     const response = await request(app.getHttpServer())
-      .put(`/order/mark-as-delivered/${ordersResponse.body.orders[0].id}`)
+      .put(`/order/delivered-order/${ordersResponse.body.orders[0].id}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         deliveryPhotoIds: [responseAttachment1.id, responseAttachment2.id],
@@ -175,7 +175,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
     )
   })
 
-  it('[PUT] /order/mark-as-delivered/:orderId - should return 401 if no token is provided', async () => {
+  it('[PUT] /order/delivered-order/:orderId - should return 401 if no token is provided', async () => {
     const admin = await prisma.user.create({
       data: {
         name: 'John Doe',
@@ -261,7 +261,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
     })
 
     const response = await request(app.getHttpServer())
-      .put(`/order/mark-as-delivered/${ordersResponse.body.orders[0].id}`)
+      .put(`/order/delivered-order/${ordersResponse.body.orders[0].id}`)
       .set('Authorization', `Bearer `)
       .send({
         deliveryPhotoIds: [responseAttachment1.id, responseAttachment2.id],
@@ -270,7 +270,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
     expect(response.status).toBe(HttpStatus.UNAUTHORIZED)
   })
 
-  it('[PUT] /order/mark-as-delivered/:orderId - should return 403 if user is not a deliveryman', async () => {
+  it('[PUT] /order/delivered-order/:orderId - should return 403 if user is not a deliveryman', async () => {
     const admin = await prisma.user.create({
       data: {
         name: 'John Doe',
@@ -356,7 +356,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
     })
 
     const response = await request(app.getHttpServer())
-      .put(`/order/mark-as-delivered/${ordersResponse.body.orders[0].id}`)
+      .put(`/order/delivered-order/${ordersResponse.body.orders[0].id}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         deliveryPhotoIds: [responseAttachment1.id, responseAttachment2.id],
@@ -368,7 +368,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
     )
   })
 
-  it('[PUT] /order/mark-as-delivered/:orderId - should return 403 if deliveryman is not assigned to the order', async () => {
+  it('[PUT] /order/delivered-order/:orderId - should return 403 if deliveryman is not assigned to the order', async () => {
     const admin = await prisma.user.create({
       data: {
         name: 'John Doe',
@@ -468,7 +468,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
     })
 
     const response = await request(app.getHttpServer())
-      .put(`/order/mark-as-delivered/${ordersResponse.body.orders[0].id}`)
+      .put(`/order/delivered-order/${ordersResponse.body.orders[0].id}`)
       .set('Authorization', `Bearer ${token2}`)
       .send({
         deliveryPhotoIds: [responseAttachment1.id, responseAttachment2.id],
@@ -480,7 +480,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
     )
   })
 
-  it('[PUT] /order/mark-as-delivered/:orderId - should return 400 if order is not picked up', async () => {
+  it('[PUT] /order/delivered-order/:orderId - should return 400 if order is not picked up', async () => {
     const admin = await prisma.user.create({
       data: {
         name: 'John Doe',
@@ -560,7 +560,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
     })
 
     const response = await request(app.getHttpServer())
-      .put(`/order/mark-as-delivered/${ordersResponse.body.orders[0].id}`)
+      .put(`/order/delivered-order/${ordersResponse.body.orders[0].id}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         deliveryPhotoIds: [responseAttachment1.id, responseAttachment2.id],
@@ -572,7 +572,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
     )
   })
 
-  it('[PUT] /order/mark-as-delivered/:orderId - should return 400 if no delivery photos are provided', async () => {
+  it('[PUT] /order/delivered-order/:orderId - should return 400 if no delivery photos are provided', async () => {
     const admin = await prisma.user.create({
       data: {
         name: 'John Doe',
@@ -644,7 +644,7 @@ describe('Mark Order As Delivered Controller (e2e)', () => {
     expect(pickUpResponse.status).toBe(HttpStatus.OK)
 
     const response = await request(app.getHttpServer())
-      .put(`/order/mark-as-delivered/${ordersResponse.body.orders[0].id}`)
+      .put(`/order/delivered-order/${ordersResponse.body.orders[0].id}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
         deliveryPhotoIds: [],

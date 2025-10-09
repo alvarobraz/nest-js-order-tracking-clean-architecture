@@ -40,8 +40,8 @@ import { PickUpOrderController } from './controllers/pick-up-order.controller'
 import { UploadAttachmentController } from './controllers/upload-attachment.controller'
 import { StorageModule } from '../storage/storage.module'
 import { UploadAndCreateAttachmentUseCase } from '@/domain/order-control/application/use-cases/upload-and-create-attachment'
-import { MarkOrderAsDeliveredUseCase } from '@/domain/order-control/application/use-cases/mark-order-as-delivered'
-import { MarkOrderAsDeliveredController } from './controllers/mark-order-as-delivered.controller'
+import { DeliveredOrderUseCase } from '@/domain/order-control/application/use-cases/delivered-order'
+import { DeliveredOrderUseCaseController } from './controllers/delivered-order.controller'
 import { MarkOrderAsReturnedUseCase } from '@/domain/order-control/application/use-cases/mark-order-as-returned'
 import { MarkOrderAsReturnedController } from './controllers/mark-order-as-returned.controller'
 import { ListUserDeliveriesController } from './controllers/list-user-deliveries.controller'
@@ -53,7 +53,9 @@ import { CreateUserRecipientUseCase } from '@/domain/order-control/application/u
 import { OnOrderCreated } from '@/domain/notification/application/subscribers/on-order-created'
 import { SendNotificationUseCase } from '@/domain/notification/application/use-cases/send-notification'
 import { PrismaNotificationsRepository } from '../database/prisma/repositories/prisma-notifications-repository'
-import { OnOrderPickUp } from '@/domain/notification/application/subscribers/or-order-picked-up'
+import { OnOrderPickUp } from '@/domain/notification/application/subscribers/on-order-picked-up'
+import { OnOrderDelivered } from '@/domain/notification/application/subscribers/on-order-delivered'
+import { OnOrderReturned } from '@/domain/notification/application/subscribers/on-order-returned'
 
 @Module({
   imports: [DatabaseModule, CryptographyModule, StorageModule],
@@ -76,7 +78,7 @@ import { OnOrderPickUp } from '@/domain/notification/application/subscribers/or-
     ListNearbyOrdersController,
     PickUpOrderController,
     UploadAttachmentController,
-    MarkOrderAsDeliveredController,
+    DeliveredOrderUseCaseController,
     MarkOrderAsReturnedController,
     ListUserDeliveriesController,
     ListMyOrderController,
@@ -99,12 +101,14 @@ import { OnOrderPickUp } from '@/domain/notification/application/subscribers/or-
     DeleteOrderUseCase,
     ListNearbyOrdersUseCase,
     PickUpOrderUseCase,
-    MarkOrderAsDeliveredUseCase,
+    DeliveredOrderUseCase,
     MarkOrderAsReturnedUseCase,
     ListUserDeliveriesUseCase,
     ListMyOrderUseCase,
     OnOrderCreated,
     OnOrderPickUp,
+    OnOrderDelivered,
+    OnOrderReturned,
     SendNotificationUseCase,
     {
       provide: 'NotificationsRepository',

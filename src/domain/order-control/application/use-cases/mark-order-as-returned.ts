@@ -6,6 +6,7 @@ import { OrderNotFoundError } from './errors/order-not-found-error'
 import { OnlyAssignedDeliverymanOrAdminCanMarkOrderAsReturnedError } from './errors/only-assigned-deliveryman-or-admin-can-mark-order-as-returned-error'
 import { Order } from '../../enterprise/entities/order'
 import { Injectable } from '@nestjs/common'
+import { DomainEvents } from '@/core/events/domain-events'
 
 interface MarkOrderAsReturnedUseCaseRequest {
   userId: string
@@ -54,6 +55,11 @@ export class MarkOrderAsReturnedUseCase {
     order.status = 'returned'
 
     await this.ordersRepository.save(order)
+
+    // console.log('order uc =>' + JSON.stringify(order))
+
+    DomainEvents.markAggregateForDispatch(order)
+    DomainEvents.dispatchEventsForAggregate(order.id)
 
     return right({ order })
   }

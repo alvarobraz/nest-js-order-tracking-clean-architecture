@@ -5,6 +5,7 @@ import { OrderAttachmentList } from './order-attachment-list'
 import { OrderCreatedEvent } from '../events/order-created-event'
 import { OrderPickedUpEvent } from '../events/order-picked-up-event'
 import { OrderDeliveredEvent } from '../events/order-delivered-event'
+import { OrderReturnedEvent } from '../events/order-returned-event'
 
 export interface OrderProps {
   recipientId: UniqueEntityID
@@ -57,6 +58,9 @@ export class Order extends AggregateRoot<OrderProps> {
   set status(status: 'pending' | 'picked_up' | 'delivered' | 'returned') {
     if (status === 'picked_up' && this.props.status !== 'picked_up') {
       this.addDomainEvent(new OrderPickedUpEvent(this))
+    }
+    if (status === 'returned' && this.props.status !== 'returned') {
+      this.addDomainEvent(new OrderReturnedEvent(this))
     }
     if (status === 'delivered' && this.props.status !== 'delivered') {
       this.addDomainEvent(new OrderDeliveredEvent(this))

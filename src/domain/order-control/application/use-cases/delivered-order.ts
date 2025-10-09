@@ -12,14 +12,15 @@ import { OrderAttachmentList } from '@/domain/order-control/enterprise/entities/
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { OrderAttachmentsRepository } from '../repositories/orders-attachments-repository'
 import { Injectable } from '@nestjs/common'
+import { DomainEvents } from '@/core/events/domain-events'
 
-interface MarkOrderAsDeliveredUseCaseRequest {
+interface DeliveredOrderUseCaseRequest {
   deliverymanId: string
   orderId: string
   deliveryPhotoIds: string[]
 }
 
-type MarkOrderAsDeliveredUseCaseResponse = Either<
+type DeliveredOrderUseCaseResponse = Either<
   | OnlyActiveDeliverymenCanMarkOrdersAsDeliveredError
   | OrderNotFoundError
   | OnlyAssignedDeliverymanCanMarkOrderAsDeliveredError
@@ -29,7 +30,7 @@ type MarkOrderAsDeliveredUseCaseResponse = Either<
 >
 
 @Injectable()
-export class MarkOrderAsDeliveredUseCase {
+export class DeliveredOrderUseCase {
   constructor(
     private ordersRepository: OrdersRepository,
     private orderAttachmentsRepository: OrderAttachmentsRepository,
@@ -40,7 +41,7 @@ export class MarkOrderAsDeliveredUseCase {
     deliverymanId,
     orderId,
     deliveryPhotoIds,
-  }: MarkOrderAsDeliveredUseCaseRequest): Promise<MarkOrderAsDeliveredUseCaseResponse> {
+  }: DeliveredOrderUseCaseRequest): Promise<DeliveredOrderUseCaseResponse> {
     const deliveryman = await this.usersRepository.findById(deliverymanId)
     if (
       !deliveryman ||
@@ -85,6 +86,9 @@ export class MarkOrderAsDeliveredUseCase {
     order.deliveryPhoto = orderAttachmentList
 
     await this.ordersRepository.save(order)
+
+    DomainEvents.markAggregateForDispatch(order)
+    DomainEvents.dispatchEventsForAggregate(order.id)
 
     return right({ order })
   }

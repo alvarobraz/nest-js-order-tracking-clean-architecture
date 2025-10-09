@@ -1,11 +1,12 @@
 import { DomainEvents } from '@/core/events/domain-events'
 import { EventHandler } from '@/core/events/event-handler'
-import { OrderDeliveredEvent } from '@/domain/order-control/enterprise/events/order-delivered-event'
+import { OrderReturnedEvent } from '@/domain/order-control/enterprise/events/order-returned-event'
 import { SendNotificationUseCase } from '../use-cases/send-notification'
-import { Inject } from '@nestjs/common'
+import { Injectable, Inject } from '@nestjs/common'
 import { RecipientsRepository } from '@/domain/order-control/application/repositories/recipients-repository'
 
-export class OnOrderDelivered implements EventHandler {
+@Injectable()
+export class OnOrderReturned implements EventHandler {
   constructor(
     @Inject('RecipientsRepository')
     private recipientsRepository: RecipientsRepository,
@@ -17,12 +18,12 @@ export class OnOrderDelivered implements EventHandler {
 
   setupSubscriptions(): void {
     DomainEvents.register(
-      this.sendDeliveredOrderNotification.bind(this),
-      OrderDeliveredEvent.name,
+      this.sendReturnedOrderNotification.bind(this),
+      OrderReturnedEvent.name,
     )
   }
 
-  private async sendDeliveredOrderNotification({ order }: OrderDeliveredEvent) {
+  private async sendReturnedOrderNotification({ order }: OrderReturnedEvent) {
     if (order.recipientId) {
       const recipient = await this.recipientsRepository.findById(
         order.recipientId.toString(),
@@ -38,8 +39,8 @@ export class OnOrderDelivered implements EventHandler {
       try {
         await this.sendNotification.execute({
           recipientId: recipient.userId.toString(),
-          title: `Pedido "${order.id.toString()}" entregue`,
-          content: `O pedido com destinatário "${recipient.userId.toString()}" foi entregue e está com status "${order.status}"`,
+          title: `Pedido com número "${order.id.toString()}" retornado`,
+          content: `O pedido com número "${order.id.toString()}" foi retornado e está com status de "${order.status}"`,
         })
       } catch (error) {
         console.error('Error sending notification:', error)
